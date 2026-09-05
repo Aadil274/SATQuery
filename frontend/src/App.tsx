@@ -1,193 +1,317 @@
 import React, { useState, useEffect } from 'react';
-import { Navbar } from './components/Navbar';
-import { ScenarioPicker } from './components/ScenarioPicker';
-import { RasterViewer } from './components/RasterViewer';
-import { QueryBar } from './components/QueryBar';
-import { ResultCard } from './components/ResultCard';
-import { ExecutionTraceDrawer } from './components/ExecutionTraceDrawer';
-import { ModelRegistryModal } from './components/ModelRegistryModal';
-import type { Scenario, ImageMetadata, QueryResponse, ModelRegistryEntry } from './types';
-import { api } from './services/api';
-import { AlertCircle, Compass } from 'lucide-react';
+import { Header } from './components/Header';
+import { LeftPanel } from './components/LeftPanel';
+import { Viewer } from './components/Viewer';
+import { RightPanel } from './components/RightPanel';
+import { BottomDock } from './components/BottomDock';
+import { HistoryDrawer, HistoryItem } from './components/HistoryDrawer';
+import { CompareModal } from './components/CompareModal';
+import {
+  ImageSlot,
+  AnalysisResponseData,
+  dimsFromUrl,
+  blobToBase64,
+  imageDims,
+  analyze,
+  getRegistry
+} from './lib/api';
+import { PRESETS, Preset } from './lib/demoData';
 
-export const App: React.FC = () => {
-  const [scenarios, setScenarios] = useState<Scenario[]>([]);
-  const [activeScenario, setActiveScenario] = useState<Scenario | null>(null);
-  const [loadedImages, setLoadedImages] = useState<ImageMetadata[]>([]);
-  const [queryResult, setQueryResult] = useState<QueryResponse | null>(null);
-  const [models, setModels] = useState<ModelRegistryEntry[]>([]);
+interface Toast {
+  id: string;
+  type: 'success' | 'error' | 'info';
+  message: string;
+}
 
-  const [isLoadingScenario, setIsLoadingScenario] = useState(false);
-  const [isQuerying, setIsQuerying] = useState(false);
-  const [isTraceOpen, setIsTraceOpen] = useState(false);
-  const [isRegistryOpen, setIsRegistryOpen] = useState(false);
-  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+export function App() {
+  const [slots, setSlots] = useState<ImageSlot[]>([]);
+  const [analysis, setAnalysis] = useState<AnalysisResponseData | null>(null);
+  const [running, setRunning] = useState(false);
+  const [status, setStatus] = useState<'idle' | 'running' | 'done'>('idle');
+  const [modelInfo, setModelInfo] = useState<any>(null);
 
-  // Initialize: fetch scenarios, model registry, and load Scenario 1 by default
+  // History & Comparison state
+  const [history, setHistory] = useState<HistoryItem[]>([]);
+  const [historyOpen, setHistoryOpen] = useState(false);
+  const [compareSel, setCompareSel] = useState<string[]>([]);
+  const [compareOpen, setCompareOpen] = useState(false);
+
+  // Non-blocking toast notification system
+  const [toasts, setToasts] = useState<Toast[]>([]);
+
+  const addToast = (message: string, type: 'success' | 'error' | 'info' = 'info') => {
+    const id = String(Date.now()) + Math.random().toString(36).slice(2, 6);
+    setToasts((prev) => [...prev, { id, type, message }]);
+    setTimeout(() => {
+      setToasts((prev) => prev.filter((t) => t.id !== id));
+    }, 3500);
+  };
+
+  // On mount: fetch model registry and pre-load default bi-temporal preset
   useEffect(() => {
-    const initApp = async () => {
-      try {
-        const [scList, regList] = await Promise.all([
-          api.fetchSamples(),
-          api.fetchRegistry(),
-        ]);
-        setScenarios(scList);
-        setModels(regList);
+    getRegistry()
+      .then((d) => setModelInfo(d.model_info))
+      .catch(() => {});
 
-        // Load Scenario 1 by default
-        if (scList.length > 0) {
-          handleSelectScenario(scList[0].id);
-        }
-      } catch (err: any) {
-        console.error('Initialization error:', err);
-        setErrorMsg('Failed to connect to SatQuery AI backend. Please ensure the backend is running on port 8000.');
-      }
-    };
-    initApp();
+    // Pre-load Bi-temporal Change Preset so user has interactive imagery immediately
+    const defaultPreset = PRESETS.find((p) => p.id === 'change') || PRESETS[0];
+    if (defaultPreset) {
+      loadPreset(defaultPreset, false);
+    }
   }, []);
 
-  const handleSelectScenario = async (scenarioId: string) => {
-    setIsLoadingScenario(true);
-    setErrorMsg(null);
+  const dispatchQuery = (q: string) => {
+    window.dispatchEvent(new CustomEvent('sq-set-query', { detail: q }));
+  };
+
+  const loadPreset = async (p: Preset, showToast = true) => {
+    setAnalysis(null);
+    if (showToast) addToast(`Loading preset: ${p.title}…`, 'info');
+
     try {
-      const res = await api.loadScenario(scenarioId);
-      setActiveScenario(res.scenario);
-      setLoadedImages(res.loaded_images);
-      setQueryResult(null); // Reset query result on scenario switch
-    } catch (err: any) {
-      console.error('Failed to load scenario:', err);
-      setErrorMsg(err.message || 'Error loading scenario dataset.');
-    } finally {
-      setIsLoadingScenario(false);
+      const built: ImageSlot[] = [];
+      for (const img of p.images) {
+        const { width, height } = await dimsFromUrl(img.url);
+        built.push({
+          name: img.name,
+          preview: img.url,
+          url: img.url,
+          base64: null,
+          width,
+          height,
+          modality: img.modality,
+          timestamp: img.timestamp,
+          meta: img.meta
+        });
+      }
+      setSlots(built);
+      dispatchQuery(p.query);
+      if (showToast) addToast(`${p.title} loaded (${built.length} scenes)`, 'success');
+    } catch (e) {
+      addToast('Failed to load preset imagery', 'error');
     }
   };
 
-  const handleQuerySubmit = async (queryText: string, taskOverride?: string) => {
-    if (loadedImages.length === 0) return;
-    setIsQuerying(true);
-    setErrorMsg(null);
-
-    const imgIds = loadedImages.map((img) => img.image_id);
+  const addFile = async (file: File) => {
+    if (slots.length >= 2) {
+      addToast('Maximum 2 scenes can be loaded for pair analysis', 'info');
+      return;
+    }
     try {
-      const response = await api.submitQuery(imgIds, queryText, taskOverride);
-      setQueryResult(response);
-    } catch (err: any) {
-      console.error('Query execution error:', err);
-      setErrorMsg(err.message || 'Analysis failed. Please check input pairing.');
-    } finally {
-      setIsQuerying(false);
+      const base64 = await blobToBase64(file);
+      const { width, height } = await imageDims(base64);
+      const isSar = file.name.toLowerCase().includes('sar') || file.name.toLowerCase().includes('vv') || file.name.toLowerCase().includes('vh');
+
+      const slot: ImageSlot = {
+        name: file.name,
+        preview: `data:${file.type || 'image/jpeg'};base64,${base64}`,
+        base64,
+        modality: isSar ? 'sar' : 'optical',
+        timestamp: new Date().toISOString().slice(0, 10),
+        width,
+        height,
+        meta: {
+          crs: 'EPSG:4326',
+          resolution: '10 m/px',
+          sensor: isSar ? 'SAR Sensor' : 'User Raster Upload'
+        }
+      };
+
+      setSlots((prev) => [...prev, slot]);
+      setAnalysis(null);
+      addToast(`${file.name} uploaded successfully`, 'success');
+    } catch (e) {
+      addToast('Failed to process uploaded file', 'error');
     }
   };
 
-  const activeMode = activeScenario?.mode || 'single';
+  const toggleModality = (idx: number) => {
+    setSlots((prev) =>
+      prev.map((s, i) =>
+        i === idx ? { ...s, modality: s.modality === 'optical' ? 'sar' : 'optical' } : s
+      )
+    );
+    addToast(`Toggled slot ${idx + 1} modality`, 'info');
+  };
+
+  const removeSlot = (idx: number) => {
+    setSlots((prev) => prev.filter((_, i) => i !== idx));
+    setAnalysis(null);
+  };
+
+  const clearAll = () => {
+    setSlots([]);
+    setAnalysis(null);
+    dispatchQuery('');
+    addToast('Cleared all imagery slots', 'info');
+  };
+
+  const runAnalyze = async (query: string) => {
+    if (!slots.length) {
+      addToast('Please upload or select an imagery scene first', 'info');
+      return;
+    }
+    setRunning(true);
+    setStatus('running');
+    setAnalysis(null);
+
+    try {
+      const payload = {
+        query,
+        images: slots.map((s) => ({
+          name: s.name,
+          modality: s.modality,
+          timestamp: s.timestamp,
+          base64: s.base64,
+          url: s.url,
+          width: s.width,
+          height: s.height
+        }))
+      };
+
+      const res = await analyze(payload);
+
+      if (res.error) {
+        addToast(res.error, 'error');
+        setAnalysis(res);
+      } else {
+        setAnalysis(res);
+        setHistory((h) => [
+          {
+            id: res.id || String(Date.now()),
+            query,
+            analysis: res,
+            slots: [...slots],
+            ts: Date.now()
+          },
+          ...h
+        ].slice(0, 25));
+
+        addToast(
+          `${res.plan?.task_label || 'Analysis'} complete · ${res.confidence?.level || 'HIGH'} confidence`,
+          'success'
+        );
+      }
+      setStatus('done');
+    } catch (e: any) {
+      addToast(`Analysis error: ${e.message || 'Check backend connection'}`, 'error');
+      setStatus('idle');
+    } finally {
+      setRunning(false);
+    }
+  };
+
+  const replay = (entry: HistoryItem) => {
+    setSlots(entry.slots);
+    setAnalysis(entry.analysis);
+    dispatchQuery(entry.query);
+    setStatus('done');
+    setHistoryOpen(false);
+    addToast('Replayed past analysis run', 'info');
+  };
+
+  const toggleCompare = (entry: HistoryItem) => {
+    setCompareSel((sel) => {
+      if (sel.includes(entry.id)) {
+        return sel.filter((id) => id !== entry.id);
+      }
+      if (sel.length >= 2) {
+        addToast('Two runs already pinned — unpin one first', 'info');
+        return sel;
+      }
+      return [...sel, entry.id];
+    });
+  };
+
+  const compareEntries = compareSel
+    .map((id) => history.find((h) => h.id === id))
+    .filter(Boolean) as HistoryItem[];
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col selection:bg-sky-500/30">
-      {/* Top Navigation */}
-      <Navbar onOpenRegistry={() => setIsRegistryOpen(true)} activeMode={activeMode} />
-
-      {/* Global Error Notification */}
-      {errorMsg && (
-        <div className="max-w-7xl mx-auto px-6 pt-4 w-full">
-          <div className="bg-rose-950/40 border border-rose-500/50 rounded-xl p-3.5 flex items-center justify-between text-xs text-rose-200 shadow-lg">
-            <div className="flex items-center space-x-2">
-              <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
-              <span>{errorMsg}</span>
-            </div>
-            <button
-              onClick={() => setErrorMsg(null)}
-              className="text-rose-400 hover:text-rose-200 font-semibold cursor-pointer"
-            >
-              Dismiss
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Main Studio Viewport */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-6 py-6">
-        {/* Scenario 1-Click Selectors */}
-        <ScenarioPicker
-          scenarios={scenarios}
-          activeScenarioId={activeScenario?.id}
-          onSelectScenario={handleSelectScenario}
-          isLoading={isLoadingScenario}
-        />
-
-        {/* Studio Grid: Left Canvas (60%) + Right Intelligence Panel (40%) */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          {/* Left Column: Interactive Raster Canvas */}
-          <div className="lg:col-span-7 flex flex-col">
-            <RasterViewer
-              images={loadedImages}
-              evidence={queryResult?.visual_evidence}
-              activeMode={activeMode}
-            />
-          </div>
-
-          {/* Right Column: Query & Intelligence Results */}
-          <div className="lg:col-span-5 flex flex-col space-y-4">
-            {/* Natural Language Query Bar */}
-            <QueryBar
-              onQuerySubmit={handleQuerySubmit}
-              suggestedQueries={activeScenario?.suggested_queries || []}
-              isLoading={isQuerying}
-              disabled={loadedImages.length === 0}
-            />
-
-            {/* Results or Idle Prompt */}
-            {queryResult ? (
-              <ResultCard
-                result={queryResult}
-                onOpenTrace={() => setIsTraceOpen(true)}
-              />
-            ) : (
-              <div className="bg-slate-900/50 border border-slate-800/80 rounded-2xl p-6 text-center text-slate-400 flex flex-col items-center justify-center space-y-3">
-                <div className="p-3 bg-sky-500/10 rounded-2xl text-sky-400 border border-sky-500/20">
-                  <Compass className="w-6 h-6 animate-spin" style={{ animationDuration: '10s' }} />
-                </div>
-                <div>
-                  <h3 className="text-sm font-semibold text-slate-200 mb-1">
-                    Agentic Controller Standing By
-                  </h3>
-                  <p className="text-xs text-slate-500 max-w-xs leading-relaxed">
-                    Select a suggested question chip above or type a custom natural language query to trigger specialist AI inference.
-                  </p>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-      </main>
-
-      {/* Footer / System Status */}
-      <footer className="border-t border-slate-800/80 bg-slate-950/80 py-3 px-6 text-xs text-slate-500">
-        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
-          <div className="flex items-center space-x-2">
-            <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
-            <span>Agentic Multi-Model Registry: 4 Active Specialists</span>
-          </div>
-          <div>Smart India Hackathon 2026 • ISRO / Department of Space • Category: Software</div>
-        </div>
-      </footer>
-
-      {/* Auditable Execution Trace Drawer */}
-      {queryResult && (
-        <ExecutionTraceDrawer
-          trace={queryResult.execution_trace}
-          isOpen={isTraceOpen}
-          onClose={() => setIsTraceOpen(false)}
-        />
-      )}
-
-      {/* Specialist Model Registry Modal */}
-      <ModelRegistryModal
-        models={models}
-        isOpen={isRegistryOpen}
-        onClose={() => setIsRegistryOpen(false)}
+    <div className="h-screen w-screen flex flex-col overflow-hidden bg-[#0B0E14] text-slate-100 antialiased select-none font-sans">
+      {/* 1. Header Cockpit */}
+      <Header
+        status={status}
+        historyCount={history.length}
+        onOpenHistory={() => setHistoryOpen(true)}
       />
+
+      {/* 2. Main 3-Column Working Area */}
+      <div className="flex-1 flex overflow-hidden">
+        {/* Left: Input imagery, Presets, GeoTIFF Upload */}
+        <LeftPanel
+          slots={slots}
+          onLoadPreset={loadPreset}
+          onAddFile={addFile}
+          onRemove={removeSlot}
+          onClear={clearAll}
+          onToggleModality={toggleModality}
+        />
+
+        {/* Center: Geospatial Viewport + Bottom Dock */}
+        <div className="flex-1 flex flex-col overflow-hidden">
+          <Viewer slots={slots} analysis={analysis} running={running} />
+          <BottomDock
+            analysis={analysis}
+            modelInfo={modelInfo}
+            running={running}
+          />
+        </div>
+
+        {/* Right: Natural-Language Query + Findings + Confidence */}
+        <RightPanel
+          slots={slots}
+          analysis={analysis}
+          running={running}
+          onAnalyze={runAnalyze}
+        />
+      </div>
+
+      {/* 3. Slide-over History Drawer */}
+      <HistoryDrawer
+        open={historyOpen}
+        onClose={() => setHistoryOpen(false)}
+        items={history}
+        onReplay={replay}
+        onClear={() => {
+          setHistory([]);
+          setCompareSel([]);
+        }}
+        compareSel={compareSel}
+        onToggleCompare={toggleCompare}
+        onOpenCompare={() => {
+          setHistoryOpen(false);
+          setCompareOpen(true);
+        }}
+      />
+
+      {/* 4. Side-by-Side Comparison Modal */}
+      <CompareModal
+        open={compareOpen}
+        onClose={() => setCompareOpen(false)}
+        entries={compareEntries}
+      />
+
+      {/* 5. Floating Toast Notifications */}
+      <div className="fixed bottom-4 right-4 z-50 flex flex-col gap-2 pointer-events-none">
+        {toasts.map((t) => (
+          <div
+            key={t.id}
+            className={`pointer-events-auto sq-glass rounded-lg px-4 py-2.5 text-xs font-mono-x border shadow-2xl flex items-center gap-2 sq-fade-up ${
+              t.type === 'success'
+                ? 'border-emerald-500/50 text-emerald-300 bg-emerald-950/80'
+                : t.type === 'error'
+                ? 'border-rose-500/50 text-rose-300 bg-rose-950/80'
+                : 'border-cyan-500/40 text-cyan-300 bg-cyan-950/80'
+            }`}
+          >
+            <span>{t.type === 'success' ? '✓' : t.type === 'error' ? '✕' : 'ℹ'}</span>
+            <span>{t.message}</span>
+          </div>
+        ))}
+      </div>
     </div>
   );
-};
+}
 
 export default App;

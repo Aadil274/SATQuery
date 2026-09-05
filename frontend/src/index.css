@@ -1,45 +1,83 @@
 @import "tailwindcss";
 
-@layer base {
-  body {
-    background-color: #0b0f19;
-    color: #f1f5f9;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
-    margin: 0;
-    padding: 0;
-    overflow-x: hidden;
-  }
+:root {
+  --bg: #0B0E14;
+  --panel: #121824;
+  --card: #182232;
+  --border: rgba(0, 240, 255, 0.15);
+  --orange: #FF7300;
+  --cyan: #00F0FF;
+  --emerald: #00E676;
+  --amber: #FFB300;
+  --ruby: #FF1744;
 }
 
-/* Custom modern scrollbars */
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
-::-webkit-scrollbar-track {
-  background: #0f172a;
-}
-::-webkit-scrollbar-thumb {
-  background: #334155;
-  border-radius: 3px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: #475569;
+body {
+  margin: 0;
+  padding: 0;
+  background-color: #0B0E14;
+  color: #f1f5f9;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  overflow: hidden;
 }
 
-/* Pulse animation for active satellite telemetry */
-@keyframes radar-pulse {
-  0% {
-    box-shadow: 0 0 0 0 rgba(56, 189, 248, 0.5);
-  }
-  70% {
-    box-shadow: 0 0 0 10px rgba(56, 189, 248, 0);
-  }
-  100% {
-    box-shadow: 0 0 0 0 rgba(56, 189, 248, 0);
-  }
+.font-head { font-family: 'Rajdhani', sans-serif; }
+.font-mono-x { font-family: 'JetBrains Mono', monospace; }
+
+.sq-grid-bg {
+  background-image:
+    repeating-linear-gradient(0deg, rgba(0,240,255,0.03) 0px, rgba(0,240,255,0.03) 1px, transparent 1px, transparent 22px),
+    repeating-linear-gradient(90deg, rgba(0,240,255,0.03) 0px, rgba(0,240,255,0.03) 1px, transparent 1px, transparent 22px);
 }
 
-.radar-badge {
-  animation: radar-pulse 2s infinite;
+.sq-glass {
+  backdrop-filter: blur(12px);
+  background: rgba(18, 24, 36, 0.82);
+  border: 1px solid var(--border);
 }
+
+.sq-glow { box-shadow: 0 0 18px rgba(0, 240, 255, 0.22); }
+.sq-glow-orange { box-shadow: 0 0 18px rgba(255, 115, 0, 0.28); }
+
+.telemetry {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.65rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(0, 240, 255, 0.75);
+}
+
+/* Space-grade scrollbar */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: #0B0E14; }
+::-webkit-scrollbar-thumb { background: #24324a; border-radius: 8px; }
+::-webkit-scrollbar-thumb:hover { background: #34496b; }
+
+@keyframes sq-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.35; transform: scale(0.82); }
+}
+.sq-pulse { animation: sq-pulse 1.6s ease-in-out infinite; }
+
+@keyframes sq-scan {
+  0% { transform: translateY(-100%); }
+  100% { transform: translateY(1000%); }
+}
+.sq-scanline {
+  position: absolute; left: 0; right: 0; height: 60px;
+  background: linear-gradient(180deg, transparent, rgba(0,240,255,0.12), transparent);
+  animation: sq-scan 3.5s linear infinite;
+  pointer-events: none;
+}
+
+@keyframes sq-fade-up {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.sq-fade-up { animation: sq-fade-up 0.35s ease-out both; }
+
+.sq-btn {
+  transition: background-color .18s ease, box-shadow .18s ease, transform .12s ease, border-color .18s ease;
+}
+.sq-btn:active { transform: translateY(1px) scale(0.99); }
+
