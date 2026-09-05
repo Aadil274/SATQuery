@@ -1,0 +1,26 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: infra/Dockerfile.backend
+    container_name: satquery-backend
+    ports:
+      - "8000:8000"
+    environment:
+      - SECRET_KEY=satquery-isro-sih2026-super-secret-key-32charsmin
+    volumes:
+      - ./backend/storage:/app/backend/storage
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: .
+      dockerfile: infra/Dockerfile.frontend
+    container_name: satquery-frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    restart: unless-stopped

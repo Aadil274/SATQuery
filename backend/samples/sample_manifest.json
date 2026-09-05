@@ -1,0 +1,88 @@
+{
+  "samples": [
+    {
+      "id": "scenario_single_vqa_grounding",
+      "title": "Scenario 1: Coastal Airport & Urban Complex",
+      "description": "High-resolution optical scene featuring airport runways, taxiways, circular fuel tanks, and dense residential sectors. Tests VQA, Captioning, and Grounding.",
+      "mode": "single",
+      "sensor": "Sentinel-2 MSI Optical / Cartosat-2S Equivalent",
+      "suggested_queries": [
+        "Describe the land-cover and major infrastructure in this scene.",
+        "Highlight the runway corridor and taxiway apron.",
+        "Locate all industrial storage tanks and fuel silos.",
+        "Is there a significant water body or coastline present?",
+        "What is the estimated built-up density in this image?"
+      ],
+      "images": [
+        {
+          "label": "Optical Raster (RGB)",
+          "filename": "sample_s2_urban_airport.tif",
+          "preview_filename": "sample_s2_urban_airport.png",
+          "modality": "optical",
+          "crs": "EPSG:32643",
+          "date": "2026-03-12"
+        }
+      ]
+    },
+    {
+      "id": "scenario_optical_sar_fusion",
+      "title": "Scenario 2: Cross-Modal Estuary (Optical + SAR)",
+      "description": "Co-registered pair with optical cloud obscuration. Sentinel-1 SAR penetrates cloud cover to reveal hidden structures and water boundaries. Tests Optical-SAR Fusion.",
+      "mode": "cross_modal",
+      "sensor": "Sentinel-2 MSI (Optical) + Sentinel-1 C-band SAR",
+      "suggested_queries": [
+        "Identify water bodies and built structures through the cloud cover using optical and SAR.",
+        "Fuse optical and SAR imagery to classify urban fabric and transport links.",
+        "What structural targets are revealed by SAR double-bounce backscatter?"
+      ],
+      "images": [
+        {
+          "label": "Optical (Cloud Obscured)",
+          "filename": "sample_coastal_optical.tif",
+          "preview_filename": "sample_coastal_optical.png",
+          "modality": "optical",
+          "crs": "EPSG:32643",
+          "date": "2026-06-18"
+        },
+        {
+          "label": "SAR Backscatter (Penetrating)",
+          "filename": "sample_coastal_sar.tif",
+          "preview_filename": "sample_coastal_sar.png",
+          "modality": "sar",
+          "crs": "EPSG:32643",
+          "date": "2026-06-18"
+        }
+      ]
+    },
+    {
+      "id": "scenario_bitemporal_flood_change",
+      "title": "Scenario 3: River Basin Flood & Development (T1 vs T2)",
+      "description": "Bi-temporal monitoring pair capturing pre-monsoon baseline vs post-monsoon flood inundation and new commercial development. Tests Change-VQA and Spatial Heatmaps.",
+      "mode": "bitemporal",
+      "sensor": "Multi-temporal Sentinel-2 MSI",
+      "suggested_queries": [
+        "What has changed between these two dates and what areas are submerged?",
+        "Where has new construction or urban development occurred?",
+        "What percentage of agricultural land was inundated by the river overflow?"
+      ],
+      "images": [
+        {
+          "label": "T1: Pre-Monsoon Baseline",
+          "filename": "sample_flood_t1_pre.tif",
+          "preview_filename": "sample_flood_t1_pre.png",
+          "modality": "optical",
+          "crs": "EPSG:32643",
+          "date": "2025-11-10"
+        },
+        {
+          "label": "T2: Post-Monsoon Flood & Construction",
+          "filename": "sample_flood_t2_post.tif",
+          "preview_filename": "sample_flood_t2_post.png",
+          "modality": "optical",
+          "crs": "EPSG:32643",
+          "date": "2026-08-20"
+        }
+      ]
+    }
+  ]
+}

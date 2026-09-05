@@ -1,0 +1,988 @@
+{
+  "images": {
+    "sample_sample_s2_urban_airport": {
+      "image_id": "sample_sample_s2_urban_airport",
+      "filename": "sample_s2_urban_airport.tif",
+      "file_path": "C:\\Users\\shaik\\OneDrive1\\Desktop\\CODING\\SATQuery\\backend\\storage\\uploads\\sample_sample_s2_urban_airport_sample_s2_urban_airport.tif",
+      "format": "tif",
+      "width": 512,
+      "height": 512,
+      "bands": 3,
+      "modality": "optical",
+      "crs": "EPSG:32643",
+      "bounds": [
+        77.5946,
+        12.9716,
+        77.6446,
+        13.0216
+      ],
+      "acquisition_date": "2026-03-12",
+      "checksum": "ca9b42520efea644",
+      "preview_url": "/api/images/previews/prev_sample_sample_s2_urban_airport.png"
+    },
+    "sample_sample_coastal_optical": {
+      "image_id": "sample_sample_coastal_optical",
+      "filename": "sample_coastal_optical.tif",
+      "file_path": "C:\\Users\\shaik\\OneDrive1\\Desktop\\CODING\\SATQuery\\backend\\storage\\uploads\\sample_sample_coastal_optical_sample_coastal_optical.tif",
+      "format": "tif",
+      "width": 512,
+      "height": 512,
+      "bands": 3,
+      "modality": "optical",
+      "crs": "EPSG:32643",
+      "bounds": [
+        77.5946,
+        12.9716,
+        77.6446,
+        13.0216
+      ],
+      "acquisition_date": "2026-06-18",
+      "checksum": "232743e5c5ba6ebe",
+      "preview_url": "/api/images/previews/prev_sample_sample_coastal_optical.png"
+    },
+    "sample_sample_coastal_sar": {
+      "image_id": "sample_sample_coastal_sar",
+      "filename": "sample_coastal_sar.tif",
+      "file_path": "C:\\Users\\shaik\\OneDrive1\\Desktop\\CODING\\SATQuery\\backend\\storage\\uploads\\sample_sample_coastal_sar_sample_coastal_sar.tif",
+      "format": "tif",
+      "width": 512,
+      "height": 512,
+      "bands": 1,
+      "modality": "sar",
+      "crs": "EPSG:32643",
+      "bounds": [
+        77.5946,
+        12.9716,
+        77.6446,
+        13.0216
+      ],
+      "acquisition_date": "2026-06-18",
+      "checksum": "7f91b2ab35dee840",
+      "preview_url": "/api/images/previews/prev_sample_sample_coastal_sar.png"
+    },
+    "sample_sample_flood_t1_pre": {
+      "image_id": "sample_sample_flood_t1_pre",
+      "filename": "sample_flood_t1_pre.tif",
+      "file_path": "C:\\Users\\shaik\\OneDrive1\\Desktop\\CODING\\SATQuery\\backend\\storage\\uploads\\sample_sample_flood_t1_pre_sample_flood_t1_pre.tif",
+      "format": "tif",
+      "width": 512,
+      "height": 512,
+      "bands": 3,
+      "modality": "optical",
+      "crs": "EPSG:32643",
+      "bounds": [
+        77.5946,
+        12.9716,
+        77.6446,
+        13.0216
+      ],
+      "acquisition_date": "2025-11-10",
+      "checksum": "b42b6075adebe0cb",
+      "preview_url": "/api/images/previews/prev_sample_sample_flood_t1_pre.png"
+    },
+    "sample_sample_flood_t2_post": {
+      "image_id": "sample_sample_flood_t2_post",
+      "filename": "sample_flood_t2_post.tif",
+      "file_path": "C:\\Users\\shaik\\OneDrive1\\Desktop\\CODING\\SATQuery\\backend\\storage\\uploads\\sample_sample_flood_t2_post_sample_flood_t2_post.tif",
+      "format": "tif",
+      "width": 512,
+      "height": 512,
+      "bands": 3,
+      "modality": "optical",
+      "crs": "EPSG:32643",
+      "bounds": [
+        77.5946,
+        12.9716,
+        77.6446,
+        13.0216
+      ],
+      "acquisition_date": "2026-08-20",
+      "checksum": "681a616e26083879",
+      "preview_url": "/api/images/previews/prev_sample_sample_flood_t2_post.png"
+    }
+  },
+  "queries": {
+    "req_20260905_070928_014830": {
+      "request_id": "req_20260905_070928_014830",
+      "status": "completed",
+      "task_type": "captioning",
+      "query_text": "Describe the land-cover and major infrastructure in this scene.",
+      "answer_text": "The satellite scene exhibits dense urban settlement with structured road grids and commercial facilities, coastal waterway / river channel with visible shoreline margins, active agricultural plots and managed forested green cover. Spectrally estimated land cover indicates ~69.0% built-up fabric, ~79.0% vegetation cover, and ~23.6% water surface presence.",
+      "confidence": {
+        "score": 0.93,
+        "level": "HIGH",
+        "calibration_metric": "Temperature-Scaled Platt Scaling with Spatial Co-Registration Regularizer",
+        "low_confidence_warning": false,
+        "warning_message": null,
+        "factors": {
+          "raw_model_score": 0.93,
+          "resolution_quality": 1.0
+        }
+      },
+      "visual_evidence": {
+        "overlay_url": null,
+        "overlay_type": "scene_captioning",
+        "features": [],
+        "legend": {},
+        "summary_stats": {
+          "veg_pct": 79.0,
+          "water_pct": 23.6,
+          "built_pct": 69.0,
+          "bare_soil_pct": 0.0,
+          "mean_brightness": 122.6
+        }
+      },
+      "execution_trace": {
+        "trace_id": "trc_20260905_070928_4c9947",
+        "timestamp": "2026-09-05T07:09:28.788183+00:00",
+        "task_classified": "captioning",
+        "classification_method": "rule_based_keyword_match",
+        "classification_confidence": 0.94,
+        "input_validation": {
+          "input_count": 1,
+          "modalities_detected": [
+            "optical"
+          ],
+          "crs_aligned": true,
+          "spatial_coverage_overlap": 100.0,
+          "format_verified": true
+        },
+        "routing_rationale": "Query requested broad scene description/caption ('\\bdescribe\\b'); routed to RS-VLM Captioning Head.",
+        "models_invoked": [
+          {
+            "model_id": "RS-VLM-BigEarthNet-LoRA-v2.1",
+            "model_name": "SatQuery RS-VLM (BigEarthNet + VRSBench)",
+            "version": "2.1.0",
+            "task_specialty": "captioning",
+            "architecture": "Vision-Transformer (ViT-L/14) + Cross-Attention Language Head with LoRA Adapter",
+            "benchmark_score": {
+              "RSVQA_HighResolution_Acc": "88.4%",
+              "BigEarthNet_Macro_F1": "89.1%",
+              "VRSBench_CIDEr": 1.19,
+              "BLEU-4": 0.38
+            },
+            "endpoint_type": "in-process-loRA"
+          }
+        ],
+        "permitted_parameters_used": {
+          "max_new_tokens": 256,
+          "temperature": 0.2
+        },
+        "execution_latency_ms": 13.98,
+        "confidence_calibration": {
+          "score": 0.93,
+          "level": "HIGH",
+          "calibration_metric": "Temperature-Scaled Platt Scaling with Spatial Co-Registration Regularizer",
+          "low_confidence_warning": false,
+          "warning_message": null,
+          "factors": {
+            "raw_model_score": 0.93,
+            "resolution_quality": 1.0
+          }
+        }
+      },
+      "report_url": "/api/report/req_20260905_070928_014830",
+      "created_at": "2026-09-05T07:09:28.788203+00:00"
+    },
+    "req_20260905_070928_f9339f": {
+      "request_id": "req_20260905_070928_f9339f",
+      "status": "completed",
+      "task_type": "grounding",
+      "query_text": "Highlight the runway corridor and taxiway apron.",
+      "answer_text": "Successfully localized 2 regions corresponding to 'Highlight the runway corridor and taxiway apron.'. Primary identified category: 'airport_infrastructure' with top detection confidence at 97.0%. Visual bounding coordinates have been projected onto the evidence overlay.",
+      "confidence": {
+        "score": 0.95,
+        "level": "HIGH",
+        "calibration_metric": "Temperature-Scaled Platt Scaling with Spatial Co-Registration Regularizer",
+        "low_confidence_warning": false,
+        "warning_message": null,
+        "factors": {
+          "raw_model_score": 0.95,
+          "resolution_quality": 1.0
+        }
+      },
+      "visual_evidence": {
+        "overlay_url": "/api/images/outputs/overlay_req_20260905_070928_f9339f.png",
+        "overlay_type": "grounding_boxes",
+        "features": [
+          {
+            "bbox": [
+              0.15,
+              0.35,
+              0.85,
+              0.62
+            ],
+            "label": "Primary Runway Strip",
+            "score": 0.97
+          },
+          {
+            "bbox": [
+              0.3,
+              0.15,
+              0.7,
+              0.32
+            ],
+            "label": "Taxiway & Staging Apron",
+            "score": 0.93
+          }
+        ],
+        "legend": {
+          "red_box": "Target Region",
+          "green_box": "Secondary Spatial Corridor"
+        },
+        "summary_stats": {}
+      },
+      "execution_trace": {
+        "trace_id": "trc_20260905_070928_d60850",
+        "timestamp": "2026-09-05T07:09:28.845511+00:00",
+        "task_classified": "grounding",
+        "classification_method": "rule_based_keyword_match",
+        "classification_confidence": 0.95,
+        "input_validation": {
+          "input_count": 1,
+          "modalities_detected": [
+            "optical"
+          ],
+          "crs_aligned": true,
+          "spatial_coverage_overlap": 100.0,
+          "format_verified": true
+        },
+        "routing_rationale": "Query matched spatial localization pattern ('\\bhighlight\\b'); routed to Open-Vocabulary Grounding Engine.",
+        "models_invoked": [
+          {
+            "model_id": "RS-Grounding-VRSBench-v1.4",
+            "model_name": "SatQuery Grounding (VRSBench Open-Vocabulary)",
+            "version": "1.4.0",
+            "task_specialty": "grounding",
+            "architecture": "Swin-Transformer Backbone + Dual-Path Text-Guided Feature Grounding Decoder",
+            "benchmark_score": {
+              "VRSBench_Grounding_IoU05": "65.8%",
+              "mAP50": "59.2%"
+            },
+            "endpoint_type": "in-process-loRA"
+          }
+        ],
+        "permitted_parameters_used": {
+          "iou_threshold": 0.5,
+          "confidence_threshold": 0.65
+        },
+        "execution_latency_ms": 53.24,
+        "confidence_calibration": {
+          "score": 0.95,
+          "level": "HIGH",
+          "calibration_metric": "Temperature-Scaled Platt Scaling with Spatial Co-Registration Regularizer",
+          "low_confidence_warning": false,
+          "warning_message": null,
+          "factors": {
+            "raw_model_score": 0.95,
+            "resolution_quality": 1.0
+          }
+        }
+      },
+      "report_url": "/api/report/req_20260905_070928_f9339f",
+      "created_at": "2026-09-05T07:09:28.845528+00:00"
+    },
+    "req_20260905_070928_f9b021": {
+      "request_id": "req_20260905_070928_f9b021",
+      "status": "completed",
+      "task_type": "cross_modal_fusion",
+      "query_text": "Identify water bodies and built structures through the cloud cover using optical and SAR.",
+      "answer_text": "Cross-modal fusion successfully penetrated surface optical cloud and aerosol obstructions. Sentinel-1 C-band synthetic aperture radar backscatter resolved structural ground targets with 14.63% high-dielectric double-bounce signatures (urban fabric / infrastructure) and 22.6% specular absorption zones (open water / wetlands) that were partially obscured in the optical band.",
+      "confidence": {
+        "score": 0.95,
+        "level": "HIGH",
+        "calibration_metric": "Temperature-Scaled Platt Scaling with Spatial Co-Registration Regularizer",
+        "low_confidence_warning": false,
+        "warning_message": null,
+        "factors": {
+          "raw_model_score": 0.95,
+          "spatial_co_registration_factor": 1.0,
+          "resolution_quality": 1.0
+        }
+      },
+      "visual_evidence": {
+        "overlay_url": "/api/images/outputs/overlay_req_20260905_070928_f9b021.png",
+        "overlay_type": "sar_optical_fused",
+        "features": [],
+        "legend": {
+          "magenta_orange": "SAR High Double-Bounce (Urban / Industrial Buildings)",
+          "dark_blue_black": "SAR Specular Water Absorption",
+          "green": "Optical Vegetation Ground Cover"
+        },
+        "summary_stats": {
+          "sar_structural_double_bounce_percent": 14.63,
+          "specular_smooth_water_percent": 22.6,
+          "cloud_penetration_effective": true,
+          "fusion_method": "Cross-modal late fusion (Sentinel-1 SAR VV + Sentinel-2 MSI RGB)"
+        }
+      },
+      "execution_trace": {
+        "trace_id": "trc_20260905_070928_29ce4b",
+        "timestamp": "2026-09-05T07:09:28.966143+00:00",
+        "task_classified": "cross_modal_fusion",
+        "classification_method": "deterministic_multimodal_rule",
+        "classification_confidence": 0.98,
+        "input_validation": {
+          "input_count": 2,
+          "modalities_detected": [
+            "optical",
+            "sar"
+          ],
+          "crs_aligned": true,
+          "spatial_coverage_overlap": 100.0,
+          "format_verified": true
+        },
+        "routing_rationale": "Dual co-registered inputs detected with complementary modalities (Optical + SAR); routed to Cross-Modal Fusion Engine.",
+        "models_invoked": [
+          {
+            "model_id": "RS-Fusion-DualAttention-v1.8",
+            "model_name": "SatQuery Cross-Modal Optical-SAR Fusion (BigEarthNet S1/S2)",
+            "version": "1.8.2",
+            "task_specialty": "cross_modal_fusion",
+            "architecture": "Late-Fusion Dual Encoder (Optical ViT + SAR ResNet) with Cross-Attention Gating",
+            "benchmark_score": {
+              "BigEarthNet_S1_S2_CoRegistered_F1": "88.9%",
+              "Built_Up_F1": "91.8%",
+              "Water_Body_F1": "95.2%"
+            },
+            "endpoint_type": "in-process-loRA"
+          }
+        ],
+        "permitted_parameters_used": {
+          "sar_weight": 0.55,
+          "cloud_penetration_mode": true
+        },
+        "execution_latency_ms": 28.61,
+        "confidence_calibration": {
+          "score": 0.95,
+          "level": "HIGH",
+          "calibration_metric": "Temperature-Scaled Platt Scaling with Spatial Co-Registration Regularizer",
+          "low_confidence_warning": false,
+          "warning_message": null,
+          "factors": {
+            "raw_model_score": 0.95,
+            "spatial_co_registration_factor": 1.0,
+            "resolution_quality": 1.0
+          }
+        }
+      },
+      "report_url": "/api/report/req_20260905_070928_f9b021",
+      "created_at": "2026-09-05T07:09:28.966159+00:00"
+    },
+    "req_20260905_070929_e3ea4a": {
+      "request_id": "req_20260905_070929_e3ea4a",
+      "status": "completed",
+      "task_type": "bitemporal_change",
+      "query_text": "What has changed between these two dates and what areas are submerged?",
+      "answer_text": "Significant inundation detected between T1 and T2. Surface water has expanded across 30.14% of the scene footprint (highlighted in cyan on the change heatmap). Low-lying riparian zones and adjacent cropland sectors show active submersion.",
+      "confidence": {
+        "score": 0.94,
+        "level": "HIGH",
+        "calibration_metric": "Temperature-Scaled Platt Scaling with Spatial Co-Registration Regularizer",
+        "low_confidence_warning": false,
+        "warning_message": null,
+        "factors": {
+          "raw_model_score": 0.94,
+          "spatial_co_registration_factor": 1.0,
+          "resolution_quality": 1.0
+        }
+      },
+      "visual_evidence": {
+        "overlay_url": "/api/images/outputs/overlay_req_20260905_070929_e3ea4a.png",
+        "overlay_type": "change_diff_heatmap",
+        "features": [],
+        "legend": {
+          "cyan_layer": "Water Inundation / Submerged Land",
+          "red_layer": "Structural Expansion / Paved Development",
+          "neutral": "Invariant Background"
+        },
+        "summary_stats": {
+          "total_change_percent": 36.1,
+          "submerged_or_water_gain_percent": 30.14,
+          "built_up_or_clearing_percent": 5.96,
+          "unchanged_percent": 63.9
+        }
+      },
+      "execution_trace": {
+        "trace_id": "trc_20260905_070929_ff12e2",
+        "timestamp": "2026-09-05T07:09:29.084235+00:00",
+        "task_classified": "bitemporal_change",
+        "classification_method": "rule_based_keyword_match",
+        "classification_confidence": 0.97,
+        "input_validation": {
+          "input_count": 2,
+          "modalities_detected": [
+            "optical",
+            "optical"
+          ],
+          "crs_aligned": true,
+          "spatial_coverage_overlap": 100.0,
+          "format_verified": true
+        },
+        "routing_rationale": "Query contains bi-temporal comparison trigger ('\\bchanged\\b') over dual temporal rasters.",
+        "models_invoked": [
+          {
+            "model_id": "RS-SiameseChange-CDVQA-v2.0",
+            "model_name": "SatQuery Bi-Temporal Siamese Change-VQA (CDVQA)",
+            "version": "2.0.1",
+            "task_specialty": "bitemporal_change",
+            "architecture": "Dual-Branch Siamese CNN/ViT + Temporal Difference Attention Head",
+            "benchmark_score": {
+              "CDVQA_Change_VQA_Acc": "84.6%",
+              "LEVIR_CD_F1": "89.2%",
+              "IoU": "81.5%"
+            },
+            "endpoint_type": "in-process-loRA"
+          }
+        ],
+        "permitted_parameters_used": {
+          "diff_threshold": 0.35,
+          "generate_heatmap": true
+        },
+        "execution_latency_ms": 39.65,
+        "confidence_calibration": {
+          "score": 0.94,
+          "level": "HIGH",
+          "calibration_metric": "Temperature-Scaled Platt Scaling with Spatial Co-Registration Regularizer",
+          "low_confidence_warning": false,
+          "warning_message": null,
+          "factors": {
+            "raw_model_score": 0.94,
+            "spatial_co_registration_factor": 1.0,
+            "resolution_quality": 1.0
+          }
+        }
+      },
+      "report_url": "/api/report/req_20260905_070929_e3ea4a",
+      "created_at": "2026-09-05T07:09:29.084255+00:00"
+    },
+    "req_20260905_070929_70825f": {
+      "request_id": "req_20260905_070929_70825f",
+      "status": "rejected",
+      "task_type": "bitemporal_change",
+      "query_text": "What changed between these two dates?",
+      "answer_text": "Validation Check Failed: Task 'bitemporal_change' mandates exactly 2 co-registered rasters, but 1 was provided.. Please review input raster pairings and requirements.",
+      "confidence": {
+        "score": 0.0,
+        "level": "LOW",
+        "calibration_metric": "temperature_scaled_entropy",
+        "low_confidence_warning": true,
+        "warning_message": "Request failed input validation pre-flight checks.",
+        "factors": {}
+      },
+      "visual_evidence": null,
+      "execution_trace": {
+        "trace_id": "trc_20260905_070929_b9fea7",
+        "timestamp": "2026-09-05T07:09:29.107698+00:00",
+        "task_classified": "bitemporal_change",
+        "classification_method": "user_explicit_override",
+        "classification_confidence": 1.0,
+        "input_validation": {
+          "input_count": 1,
+          "modalities_detected": [
+            "optical"
+          ],
+          "crs_aligned": true,
+          "spatial_coverage_overlap": 100.0,
+          "format_verified": false
+        },
+        "routing_rationale": "User explicitly designated task category as 'bitemporal_change'. [ABORTED AT VALIDATION STAGE]",
+        "models_invoked": [
+          {
+            "model_id": "SatQuery-Controller-Validator",
+            "model_name": "Input Compatibility Checker",
+            "version": "1.0",
+            "task_specialty": "bitemporal_change",
+            "architecture": "Custom RS Neural Architecture",
+            "benchmark_score": {},
+            "endpoint_type": "in-process-loRA"
+          }
+        ],
+        "permitted_parameters_used": {},
+        "execution_latency_ms": 0.06,
+        "confidence_calibration": {
+          "validation_failed": true
+        }
+      },
+      "report_url": null,
+      "created_at": "2026-09-05T07:09:29.107719+00:00"
+    },
+    "req_20260905_071005_a42486": {
+      "request_id": "req_20260905_071005_a42486",
+      "status": "completed",
+      "task_type": "captioning",
+      "query_text": "Describe the land-cover and major infrastructure in this scene.",
+      "answer_text": "The satellite scene exhibits dense urban settlement with structured road grids and commercial facilities, coastal waterway / river channel with visible shoreline margins, active agricultural plots and managed forested green cover. Spectrally estimated land cover indicates ~69.0% built-up fabric, ~79.0% vegetation cover, and ~23.6% water surface presence.",
+      "confidence": {
+        "score": 0.93,
+        "level": "HIGH",
+        "calibration_metric": "Temperature-Scaled Platt Scaling with Spatial Co-Registration Regularizer",
+        "low_confidence_warning": false,
+        "warning_message": null,
+        "factors": {
+          "raw_model_score": 0.93,
+          "resolution_quality": 1.0
+        }
+      },
+      "visual_evidence": {
+        "overlay_url": null,
+        "overlay_type": "scene_captioning",
+        "features": [],
+        "legend": {},
+        "summary_stats": {
+          "veg_pct": 79.0,
+          "water_pct": 23.6,
+          "built_pct": 69.0,
+          "bare_soil_pct": 0.0,
+          "mean_brightness": 122.6
+        }
+      },
+      "execution_trace": {
+        "trace_id": "trc_20260905_071005_0a42a5",
+        "timestamp": "2026-09-05T07:10:05.685417+00:00",
+        "task_classified": "captioning",
+        "classification_method": "rule_based_keyword_match",
+        "classification_confidence": 0.94,
+        "input_validation": {
+          "input_count": 1,
+          "modalities_detected": [
+            "optical"
+          ],
+          "crs_aligned": true,
+          "spatial_coverage_overlap": 100.0,
+          "format_verified": true
+        },
+        "routing_rationale": "Query requested broad scene description/caption ('\\bdescribe\\b'); routed to RS-VLM Captioning Head.",
+        "models_invoked": [
+          {
+            "model_id": "RS-VLM-BigEarthNet-LoRA-v2.1",
+            "model_name": "SatQuery RS-VLM (BigEarthNet + VRSBench)",
+            "version": "2.1.0",
+            "task_specialty": "captioning",
+            "architecture": "Vision-Transformer (ViT-L/14) + Cross-Attention Language Head with LoRA Adapter",
+            "benchmark_score": {
+              "RSVQA_HighResolution_Acc": "88.4%",
+              "BigEarthNet_Macro_F1": "89.1%",
+              "VRSBench_CIDEr": 1.19,
+              "BLEU-4": 0.38
+            },
+            "endpoint_type": "in-process-loRA"
+          }
+        ],
+        "permitted_parameters_used": {
+          "max_new_tokens": 256,
+          "temperature": 0.2
+        },
+        "execution_latency_ms": 14.41,
+        "confidence_calibration": {
+          "score": 0.93,
+          "level": "HIGH",
+          "calibration_metric": "Temperature-Scaled Platt Scaling with Spatial Co-Registration Regularizer",
+          "low_confidence_warning": false,
+          "warning_message": null,
+          "factors": {
+            "raw_model_score": 0.93,
+            "resolution_quality": 1.0
+          }
+        }
+      },
+      "report_url": "/api/report/req_20260905_071005_a42486",
+      "created_at": "2026-09-05T07:10:05.685451+00:00"
+    },
+    "req_20260905_071005_0b3a96": {
+      "request_id": "req_20260905_071005_0b3a96",
+      "status": "completed",
+      "task_type": "grounding",
+      "query_text": "Highlight the runway corridor and taxiway apron.",
+      "answer_text": "Successfully localized 2 regions corresponding to 'Highlight the runway corridor and taxiway apron.'. Primary identified category: 'airport_infrastructure' with top detection confidence at 97.0%. Visual bounding coordinates have been projected onto the evidence overlay.",
+      "confidence": {
+        "score": 0.95,
+        "level": "HIGH",
+        "calibration_metric": "Temperature-Scaled Platt Scaling with Spatial Co-Registration Regularizer",
+        "low_confidence_warning": false,
+        "warning_message": null,
+        "factors": {
+          "raw_model_score": 0.95,
+          "resolution_quality": 1.0
+        }
+      },
+      "visual_evidence": {
+        "overlay_url": "/api/images/outputs/overlay_req_20260905_071005_0b3a96.png",
+        "overlay_type": "grounding_boxes",
+        "features": [
+          {
+            "bbox": [
+              0.15,
+              0.35,
+              0.85,
+              0.62
+            ],
+            "label": "Primary Runway Strip",
+            "score": 0.97
+          },
+          {
+            "bbox": [
+              0.3,
+              0.15,
+              0.7,
+              0.32
+            ],
+            "label": "Taxiway & Staging Apron",
+            "score": 0.93
+          }
+        ],
+        "legend": {
+          "red_box": "Target Region",
+          "green_box": "Secondary Spatial Corridor"
+        },
+        "summary_stats": {}
+      },
+      "execution_trace": {
+        "trace_id": "trc_20260905_071005_94de3c",
+        "timestamp": "2026-09-05T07:10:05.717166+00:00",
+        "task_classified": "grounding",
+        "classification_method": "rule_based_keyword_match",
+        "classification_confidence": 0.95,
+        "input_validation": {
+          "input_count": 1,
+          "modalities_detected": [
+            "optical"
+          ],
+          "crs_aligned": true,
+          "spatial_coverage_overlap": 100.0,
+          "format_verified": true
+        },
+        "routing_rationale": "Query matched spatial localization pattern ('\\bhighlight\\b'); routed to Open-Vocabulary Grounding Engine.",
+        "models_invoked": [
+          {
+            "model_id": "RS-Grounding-VRSBench-v1.4",
+            "model_name": "SatQuery Grounding (VRSBench Open-Vocabulary)",
+            "version": "1.4.0",
+            "task_specialty": "grounding",
+            "architecture": "Swin-Transformer Backbone + Dual-Path Text-Guided Feature Grounding Decoder",
+            "benchmark_score": {
+              "VRSBench_Grounding_IoU05": "65.8%",
+              "mAP50": "59.2%"
+            },
+            "endpoint_type": "in-process-loRA"
+          }
+        ],
+        "permitted_parameters_used": {
+          "iou_threshold": 0.5,
+          "confidence_threshold": 0.65
+        },
+        "execution_latency_ms": 26.3,
+        "confidence_calibration": {
+          "score": 0.95,
+          "level": "HIGH",
+          "calibration_metric": "Temperature-Scaled Platt Scaling with Spatial Co-Registration Regularizer",
+          "low_confidence_warning": false,
+          "warning_message": null,
+          "factors": {
+            "raw_model_score": 0.95,
+            "resolution_quality": 1.0
+          }
+        }
+      },
+      "report_url": "/api/report/req_20260905_071005_0b3a96",
+      "created_at": "2026-09-05T07:10:05.717185+00:00"
+    },
+    "req_20260905_071005_36e4c0": {
+      "request_id": "req_20260905_071005_36e4c0",
+      "status": "completed",
+      "task_type": "cross_modal_fusion",
+      "query_text": "Identify water bodies and built structures through the cloud cover using optical and SAR.",
+      "answer_text": "Cross-modal fusion successfully penetrated surface optical cloud and aerosol obstructions. Sentinel-1 C-band synthetic aperture radar backscatter resolved structural ground targets with 14.63% high-dielectric double-bounce signatures (urban fabric / infrastructure) and 22.6% specular absorption zones (open water / wetlands) that were partially obscured in the optical band.",
+      "confidence": {
+        "score": 0.95,
+        "level": "HIGH",
+        "calibration_metric": "Temperature-Scaled Platt Scaling with Spatial Co-Registration Regularizer",
+        "low_confidence_warning": false,
+        "warning_message": null,
+        "factors": {
+          "raw_model_score": 0.95,
+          "spatial_co_registration_factor": 1.0,
+          "resolution_quality": 1.0
+        }
+      },
+      "visual_evidence": {
+        "overlay_url": "/api/images/outputs/overlay_req_20260905_071005_36e4c0.png",
+        "overlay_type": "sar_optical_fused",
+        "features": [],
+        "legend": {
+          "magenta_orange": "SAR High Double-Bounce (Urban / Industrial Buildings)",
+          "dark_blue_black": "SAR Specular Water Absorption",
+          "green": "Optical Vegetation Ground Cover"
+        },
+        "summary_stats": {
+          "sar_structural_double_bounce_percent": 14.63,
+          "specular_smooth_water_percent": 22.6,
+          "cloud_penetration_effective": true,
+          "fusion_method": "Cross-modal late fusion (Sentinel-1 SAR VV + Sentinel-2 MSI RGB)"
+        }
+      },
+      "execution_trace": {
+        "trace_id": "trc_20260905_071005_446a17",
+        "timestamp": "2026-09-05T07:10:05.783525+00:00",
+        "task_classified": "cross_modal_fusion",
+        "classification_method": "deterministic_multimodal_rule",
+        "classification_confidence": 0.98,
+        "input_validation": {
+          "input_count": 2,
+          "modalities_detected": [
+            "optical",
+            "sar"
+          ],
+          "crs_aligned": true,
+          "spatial_coverage_overlap": 100.0,
+          "format_verified": true
+        },
+        "routing_rationale": "Dual co-registered inputs detected with complementary modalities (Optical + SAR); routed to Cross-Modal Fusion Engine.",
+        "models_invoked": [
+          {
+            "model_id": "RS-Fusion-DualAttention-v1.8",
+            "model_name": "SatQuery Cross-Modal Optical-SAR Fusion (BigEarthNet S1/S2)",
+            "version": "1.8.2",
+            "task_specialty": "cross_modal_fusion",
+            "architecture": "Late-Fusion Dual Encoder (Optical ViT + SAR ResNet) with Cross-Attention Gating",
+            "benchmark_score": {
+              "BigEarthNet_S1_S2_CoRegistered_F1": "88.9%",
+              "Built_Up_F1": "91.8%",
+              "Water_Body_F1": "95.2%"
+            },
+            "endpoint_type": "in-process-loRA"
+          }
+        ],
+        "permitted_parameters_used": {
+          "sar_weight": 0.55,
+          "cloud_penetration_mode": true
+        },
+        "execution_latency_ms": 24.83,
+        "confidence_calibration": {
+          "score": 0.95,
+          "level": "HIGH",
+          "calibration_metric": "Temperature-Scaled Platt Scaling with Spatial Co-Registration Regularizer",
+          "low_confidence_warning": false,
+          "warning_message": null,
+          "factors": {
+            "raw_model_score": 0.95,
+            "spatial_co_registration_factor": 1.0,
+            "resolution_quality": 1.0
+          }
+        }
+      },
+      "report_url": "/api/report/req_20260905_071005_36e4c0",
+      "created_at": "2026-09-05T07:10:05.783543+00:00"
+    },
+    "req_20260905_071005_49367f": {
+      "request_id": "req_20260905_071005_49367f",
+      "status": "completed",
+      "task_type": "bitemporal_change",
+      "query_text": "What has changed between these two dates and what areas are submerged?",
+      "answer_text": "Significant inundation detected between T1 and T2. Surface water has expanded across 30.14% of the scene footprint (highlighted in cyan on the change heatmap). Low-lying riparian zones and adjacent cropland sectors show active submersion.",
+      "confidence": {
+        "score": 0.94,
+        "level": "HIGH",
+        "calibration_metric": "Temperature-Scaled Platt Scaling with Spatial Co-Registration Regularizer",
+        "low_confidence_warning": false,
+        "warning_message": null,
+        "factors": {
+          "raw_model_score": 0.94,
+          "spatial_co_registration_factor": 1.0,
+          "resolution_quality": 1.0
+        }
+      },
+      "visual_evidence": {
+        "overlay_url": "/api/images/outputs/overlay_req_20260905_071005_49367f.png",
+        "overlay_type": "change_diff_heatmap",
+        "features": [],
+        "legend": {
+          "cyan_layer": "Water Inundation / Submerged Land",
+          "red_layer": "Structural Expansion / Paved Development",
+          "neutral": "Invariant Background"
+        },
+        "summary_stats": {
+          "total_change_percent": 36.1,
+          "submerged_or_water_gain_percent": 30.14,
+          "built_up_or_clearing_percent": 5.96,
+          "unchanged_percent": 63.9
+        }
+      },
+      "execution_trace": {
+        "trace_id": "trc_20260905_071005_cb4597",
+        "timestamp": "2026-09-05T07:10:05.848842+00:00",
+        "task_classified": "bitemporal_change",
+        "classification_method": "rule_based_keyword_match",
+        "classification_confidence": 0.97,
+        "input_validation": {
+          "input_count": 2,
+          "modalities_detected": [
+            "optical",
+            "optical"
+          ],
+          "crs_aligned": true,
+          "spatial_coverage_overlap": 100.0,
+          "format_verified": true
+        },
+        "routing_rationale": "Query contains bi-temporal comparison trigger ('\\bchanged\\b') over dual temporal rasters.",
+        "models_invoked": [
+          {
+            "model_id": "RS-SiameseChange-CDVQA-v2.0",
+            "model_name": "SatQuery Bi-Temporal Siamese Change-VQA (CDVQA)",
+            "version": "2.0.1",
+            "task_specialty": "bitemporal_change",
+            "architecture": "Dual-Branch Siamese CNN/ViT + Temporal Difference Attention Head",
+            "benchmark_score": {
+              "CDVQA_Change_VQA_Acc": "84.6%",
+              "LEVIR_CD_F1": "89.2%",
+              "IoU": "81.5%"
+            },
+            "endpoint_type": "in-process-loRA"
+          }
+        ],
+        "permitted_parameters_used": {
+          "diff_threshold": 0.35,
+          "generate_heatmap": true
+        },
+        "execution_latency_ms": 31.51,
+        "confidence_calibration": {
+          "score": 0.94,
+          "level": "HIGH",
+          "calibration_metric": "Temperature-Scaled Platt Scaling with Spatial Co-Registration Regularizer",
+          "low_confidence_warning": false,
+          "warning_message": null,
+          "factors": {
+            "raw_model_score": 0.94,
+            "spatial_co_registration_factor": 1.0,
+            "resolution_quality": 1.0
+          }
+        }
+      },
+      "report_url": "/api/report/req_20260905_071005_49367f",
+      "created_at": "2026-09-05T07:10:05.848859+00:00"
+    },
+    "req_20260905_071005_48ed65": {
+      "request_id": "req_20260905_071005_48ed65",
+      "status": "rejected",
+      "task_type": "bitemporal_change",
+      "query_text": "What changed between these two dates?",
+      "answer_text": "Validation Check Failed: Task 'bitemporal_change' mandates exactly 2 co-registered rasters, but 1 was provided.. Please review input raster pairings and requirements.",
+      "confidence": {
+        "score": 0.0,
+        "level": "LOW",
+        "calibration_metric": "temperature_scaled_entropy",
+        "low_confidence_warning": true,
+        "warning_message": "Request failed input validation pre-flight checks.",
+        "factors": {}
+      },
+      "visual_evidence": null,
+      "execution_trace": {
+        "trace_id": "trc_20260905_071005_78f146",
+        "timestamp": "2026-09-05T07:10:05.867846+00:00",
+        "task_classified": "bitemporal_change",
+        "classification_method": "user_explicit_override",
+        "classification_confidence": 1.0,
+        "input_validation": {
+          "input_count": 1,
+          "modalities_detected": [
+            "optical"
+          ],
+          "crs_aligned": true,
+          "spatial_coverage_overlap": 100.0,
+          "format_verified": false
+        },
+        "routing_rationale": "User explicitly designated task category as 'bitemporal_change'. [ABORTED AT VALIDATION STAGE]",
+        "models_invoked": [
+          {
+            "model_id": "SatQuery-Controller-Validator",
+            "model_name": "Input Compatibility Checker",
+            "version": "1.0",
+            "task_specialty": "bitemporal_change",
+            "architecture": "Custom RS Neural Architecture",
+            "benchmark_score": {},
+            "endpoint_type": "in-process-loRA"
+          }
+        ],
+        "permitted_parameters_used": {},
+        "execution_latency_ms": 0.07,
+        "confidence_calibration": {
+          "validation_failed": true
+        }
+      },
+      "report_url": null,
+      "created_at": "2026-09-05T07:10:05.867875+00:00"
+    }
+  },
+  "history": [
+    {
+      "request_id": "req_20260905_071005_48ed65",
+      "task_type": "bitemporal_change",
+      "query_text": "What changed between these two dates?",
+      "confidence_score": 0.0,
+      "created_at": "2026-09-05T07:10:05.867875+00:00"
+    },
+    {
+      "request_id": "req_20260905_071005_49367f",
+      "task_type": "bitemporal_change",
+      "query_text": "What has changed between these two dates and what areas are submerged?",
+      "confidence_score": 0.94,
+      "created_at": "2026-09-05T07:10:05.848859+00:00"
+    },
+    {
+      "request_id": "req_20260905_071005_36e4c0",
+      "task_type": "cross_modal_fusion",
+      "query_text": "Identify water bodies and built structures through the cloud cover using optical and SAR.",
+      "confidence_score": 0.95,
+      "created_at": "2026-09-05T07:10:05.783543+00:00"
+    },
+    {
+      "request_id": "req_20260905_071005_0b3a96",
+      "task_type": "grounding",
+      "query_text": "Highlight the runway corridor and taxiway apron.",
+      "confidence_score": 0.95,
+      "created_at": "2026-09-05T07:10:05.717185+00:00"
+    },
+    {
+      "request_id": "req_20260905_071005_a42486",
+      "task_type": "captioning",
+      "query_text": "Describe the land-cover and major infrastructure in this scene.",
+      "confidence_score": 0.93,
+      "created_at": "2026-09-05T07:10:05.685451+00:00"
+    },
+    {
+      "request_id": "req_20260905_070929_70825f",
+      "task_type": "bitemporal_change",
+      "query_text": "What changed between these two dates?",
+      "confidence_score": 0.0,
+      "created_at": "2026-09-05T07:09:29.107719+00:00"
+    },
+    {
+      "request_id": "req_20260905_070929_e3ea4a",
+      "task_type": "bitemporal_change",
+      "query_text": "What has changed between these two dates and what areas are submerged?",
+      "confidence_score": 0.94,
+      "created_at": "2026-09-05T07:09:29.084255+00:00"
+    },
+    {
+      "request_id": "req_20260905_070928_f9b021",
+      "task_type": "cross_modal_fusion",
+      "query_text": "Identify water bodies and built structures through the cloud cover using optical and SAR.",
+      "confidence_score": 0.95,
+      "created_at": "2026-09-05T07:09:28.966159+00:00"
+    },
+    {
+      "request_id": "req_20260905_070928_f9339f",
+      "task_type": "grounding",
+      "query_text": "Highlight the runway corridor and taxiway apron.",
+      "confidence_score": 0.95,
+      "created_at": "2026-09-05T07:09:28.845528+00:00"
+    },
+    {
+      "request_id": "req_20260905_070928_014830",
+      "task_type": "captioning",
+      "query_text": "Describe the land-cover and major infrastructure in this scene.",
+      "confidence_score": 0.93,
+      "created_at": "2026-09-05T07:09:28.788203+00:00"
+    }
+  ]
+}
