@@ -52,7 +52,8 @@ class ChangeVQATool(RemoteSensingTool):
         query = inputs.get("query", "")
         change_data = inputs.get("change_data", {})
         dates = inputs.get("dates", ["2022-01-15", "2024-06-20"])
-        return self.vqa.answer_change_query(query, change_data, dates=dates)
+        images = inputs.get("images", [])
+        return self.vqa.answer_change_query(query, change_data, dates=dates, image_paths=images)
 
     def confidence(self, output: Dict[str, Any]) -> float:
         return output.get("confidence", 0.92)

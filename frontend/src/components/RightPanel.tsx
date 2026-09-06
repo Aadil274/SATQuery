@@ -226,16 +226,29 @@ export const RightPanel: React.FC<RightPanelProps> = ({
                 {answer}
               </p>
 
-              {/* Primary Changes Bullets */}
-              {r?.primary_changes && r.primary_changes.length > 0 && (
-                <ul className="mt-2 space-y-1 border-t border-cyan-500/15 pt-2">
-                  {r.primary_changes.map((change, i) => (
-                    <li key={i} className="text-[11px] text-rose-300 flex items-start gap-1.5 font-sans">
-                      <span className="text-rose-400 shrink-0">▸</span>
+              {/* Primary Changes / Spatial Rationales Bullets */}
+              {((r?.primary_changes && r.primary_changes.length > 0) ? r.primary_changes : (analysis.bullet_points || [])).length > 0 && (
+                <ul className="mt-2 space-y-1.5 border-t border-cyan-500/15 pt-2">
+                  {((r?.primary_changes && r.primary_changes.length > 0) ? r.primary_changes : (analysis.bullet_points || [])).map((change, i) => (
+                    <li key={i} className="text-[11px] text-slate-200 flex items-start gap-1.5 font-sans leading-relaxed">
+                      <span className="text-[#FF7300] shrink-0 font-bold">▸</span>
                       <span>{change}</span>
                     </li>
                   ))}
                 </ul>
+              )}
+
+              {/* Active Spatial Heatmap Telemetry Badge */}
+              {(r?.heatmap || analysis.heatmap) && (
+                <div className="mt-2 pt-2 border-t border-cyan-500/15 flex items-center justify-between text-[11px] font-mono-x text-amber-300 bg-amber-500/10 px-2.5 py-1.5 rounded border border-amber-500/25">
+                  <div className="flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-[#FF1744] sq-pulse" />
+                    <span className="font-semibold">{(r?.heatmap || analysis.heatmap)?.title}</span>
+                  </div>
+                  <span className="text-[10px] text-amber-400 font-mono-x">
+                    ACTIVE OVERLAY
+                  </span>
+                </div>
               )}
 
               {/* Land Cover Classification Badges */}
@@ -259,6 +272,7 @@ export const RightPanel: React.FC<RightPanelProps> = ({
                 </div>
               )}
             </div>
+
 
             {/* 3. System Confidence Gauge */}
             <div

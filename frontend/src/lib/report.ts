@@ -20,6 +20,10 @@ export function downloadReport(analysis: AnalysisResponseData) {
 
   const models = ((analysis.plan?.models) || ['SatQuery-RS-VLM']).join(', ');
   const answer = r.answer || r.caption || r.fusion_insight || analysis.headline_answer || '—';
+  const bullets = (r.primary_changes && r.primary_changes.length > 0 ? r.primary_changes : analysis.bullet_points || [])
+    .map((b) => `<li style="margin-bottom:5px">${b}</li>`)
+    .join('');
+  const heatmap = r.heatmap || analysis.heatmap;
 
   const html = `<!doctype html>
 <html>
@@ -35,7 +39,7 @@ export function downloadReport(analysis: AnalysisResponseData) {
     td, th { border: 1px solid rgba(255,255,255,.1); padding: 8px 12px; text-align: left; }
     th { background: rgba(0,240,255,0.06); color: #00F0FF; font-weight: 600; }
     .k { color: #94A3B8; font-size: 13px; margin-top: 4px; }
-    .big { font-size: 16px; line-height: 1.6; color: #F8FAFC; background: #121824; border: 1px solid rgba(0,240,255,0.15); border-radius: 8px; padding: 14px; }
+    .big { font-size: 14px; line-height: 1.6; color: #F8FAFC; background: #121824; border: 1px solid rgba(0,240,255,0.15); border-radius: 8px; padding: 14px; }
     ul { line-height: 1.7; padding-left: 20px; }
     .meta { color: #64748B; font-size: 12px; }
   </style>
@@ -56,8 +60,21 @@ export function downloadReport(analysis: AnalysisResponseData) {
   <div class="k">Specialist Models: <b>${models}</b></div>
 
   <h2>SatQuery-RS-VLM Findings</h2>
-  <div class="big" style="border-left: 4px solid #FF7300">${answer}</div>
+  <div class="big" style="border-left: 4px solid #FF7300">
+    <div style="font-weight:600;margin-bottom:8px">${answer}</div>
+    ${bullets ? `<ul style="margin:8px 0 0;padding-left:20px;color:#cbd5e1">${bullets}</ul>` : ''}
+  </div>
   ${r.change_percentage != null ? `<div class="k" style="color:#FF1744;font-weight:600;margin-top:6px">Change Detected: ${r.change_percentage}% · Affected Spatial Extent: ${r.affected_area || '—'}</div>` : ''}
+
+  ${heatmap ? `
+  <h2>Spatial Intensity & Heatmap Telemetry</h2>
+  <div class="big" style="border-left: 4px solid #FF1744">
+    <b>${heatmap.title}</b> (${heatmap.intensity_label})
+    <div style="margin-top:8px;font-size:12px;color:#94a3b8;line-height:1.8">
+      ${(heatmap.points || []).map((p) => `• <b>${p.label || 'Hotspot'}</b> (Center: [${(p.x * 100).toFixed(0)}%, ${(p.y * 100).toFixed(0)}%]) — Intensity: ${(p.intensity * 100).toFixed(0)}%`).join('<br/>')}
+    </div>
+  </div>` : ''}
+
 
   <h2>System Confidence & Metrics</h2>
   <table>

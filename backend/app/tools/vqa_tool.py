@@ -25,12 +25,15 @@ class RSVQATool(RemoteSensingTool):
         images = inputs.get("images", [])
         query = inputs.get("query", "")
         img_arr = None
+        img_path = images[0] if images else None
         try:
-            im = Image.open(images[0]).convert('RGB')
-            img_arr = np.array(im)
+            if img_path:
+                im = Image.open(img_path).convert('RGB')
+                img_arr = np.array(im)
         except Exception:
             pass
-        return self.vlm.answer_vqa(img_arr, query, metadata=inputs.get("metadata"))
+        return self.vlm.answer_vqa(img_arr, query, metadata=inputs.get("metadata"), image_path=img_path)
+
 
     def confidence(self, output: Dict[str, Any]) -> float:
         return output.get("confidence", 0.89)

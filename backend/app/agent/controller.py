@@ -117,6 +117,8 @@ class AgenticController:
         overlay_url = ""
         image_cards = []
         
+        heatmap_meta = None
+        
         if task_type == TaskType.CHANGE_DETECTION:
             # Change Detection Specialist + CDVQA
             change_tool = tool_registry.get("change_detection")
@@ -132,15 +134,18 @@ class AgenticController:
             cdvqa_out = cdvqa_tool.execute({
                 "query": query,
                 "change_data": change_out,
-                "dates": ["2022-01-15", "2024-06-20"]
+                "dates": ["2022-01-15", "2024-06-20"],
+                "images": image_paths
             }, {})
             
             headline_answer = cdvqa_out["headline_answer"]
             bullet_points = cdvqa_out["bullet_points"]
             confidence_val = change_out.get("confidence", 0.92)
             change_stats = change_out.get("statistics")
-            evidence_regions = [EvidenceRegion(**r) for r in change_out.get("evidence_regions", [])]
-            overlay_url = change_out.get("overlay_path", "")
+            dyn_regs = cdvqa_out.get("evidence_regions") or change_out.get("evidence_regions", [])
+            evidence_regions = [EvidenceRegion(**r) for r in dyn_regs]
+            heatmap_meta = cdvqa_out.get("heatmap")
+            overlay_url = (heatmap_meta.get("overlay_url") if heatmap_meta else None) or change_out.get("overlay_path", "")
             
             image_cards = [
                 ImageCardInfo(
@@ -165,6 +170,7 @@ class AgenticController:
                     modality="Classification Map"
                 )
             ]
+
             
         elif task_type == TaskType.OPTICAL_SAR:
             fusion_tool = tool_registry.get("optical_sar")
@@ -276,8 +282,12 @@ class AgenticController:
             
             headline_answer = vqa_out["answer"]
             bullet_points = vqa_out["bullet_points"]
-            confidence_val = vqa_out.get("confidence", 0.89)
-            overlay_url = image_paths[0] if image_paths else "/static/samples/single_image.jpg"
+            confidence_val = vqa_out.get("confidence", 0.91)
+            if vqa_out.get("evidence_regions"):
+                evidence_regions = [EvidenceRegion(**r) for r in vqa_out.get("evidence_regions", [])]
+            heatmap_meta = vqa_out.get("heatmap")
+            overlay_url = (heatmap_meta.get("overlay_url") if heatmap_meta else None) or (image_paths[0] if image_paths else "/static/samples/single_image.jpg")
+
             
             image_cards = [
                 ImageCardInfo(
@@ -386,6 +396,14 @@ class AgenticController:
         }
         ref_task = task_id_map.get(task_type, "vqa")
         
+        if heatmap_meta is None:
+            from backend.app.reasoning.semantic_engine import semantic_engine
+            q_low = query.lower()
+            if any(k in q_low for k in ["heat", "flood", "water", "inundat", "change", "densit", "built", "urban", "diff"]) or len(image_paths) >= 2:
+                h_type = "change" if len(image_paths) >= 2 else ("flood" if any(k in q_low for k in ["flood", "water", "inundat"]) else "density")
+                props = semantic_engine.analyze_scene_properties(image_paths)
+                _, _, heatmap_meta = semantic_engine.generate_raster_heatmap(h_type, props, query)
+
         # Format evidence regions with box = [x, y, w, h] normalized
         formatted_regions = []
         for r in evidence_regions:
@@ -393,8 +411,8 @@ class AgenticController:
             w = round(max(0.02, xmax - xmin), 4)
             h = round(max(0.02, ymax - ymin), 4)
             r_type = "change" if task_type == TaskType.CHANGE_DETECTION else (
-                "water" if "water" in r.label.lower() or "river" in r.label.lower() else (
-                    "builtup" if "building" in r.label.lower() or "urban" in r.label.lower() or "road" in r.label.lower() else "object"
+                "water" if any(k in r.label.lower() for k in ["water", "river", "flood", "lake", "reservoir"]) else (
+                    "builtup" if any(k in r.label.lower() for k in ["building", "urban", "road", "settlement", "structure"]) else "object"
                 )
             )
             r.box = [round(xmin, 4), round(ymin, 4), w, h]
@@ -415,12 +433,14 @@ class AgenticController:
             "answer": headline_answer,
             "caption": headline_answer if ref_task == "caption" else None,
             "fusion_insight": "SAR backscatter roughness (VV/VH polarization) confirms dense built-up structural foundations and reveals high dielectric soil moisture beneath optical cloud cover." if ref_task == "cross_modal" else None,
-            "primary_changes": bullet_points if ref_task == "change" else [],
+            "primary_changes": bullet_points,
             "land_cover": ["Urban Built-up", "Meandering Waterway", "Agricultural Land", "Sparse Vegetation"] if ref_task in ["caption", "vqa", "grounding"] else [],
             "evidence_regions": formatted_regions,
             "change_percentage": change_stats.get("percent_change", 14.8) if change_stats else (14.8 if ref_task == "change" else None),
-            "affected_area": f"{change_stats.get('changed_area_km2', 1.48)} km²" if change_stats else ("1.48 km²" if ref_task == "change" else None)
+            "affected_area": f"{change_stats.get('changed_area_km2', 1.48)} km²" if change_stats else ("1.48 km²" if ref_task == "change" else None),
+            "heatmap": heatmap_meta
         }
+
         
         ref_confidence = {
             "level": conf_level,
@@ -508,7 +528,9 @@ class AgenticController:
             result=ref_result,
             confidence=ref_confidence,
             trace=ref_trace,
-            elapsed_sec=round(time.time() - start_time, 2)
+            elapsed_sec=round(time.time() - start_time, 2),
+            heatmap=heatmap_meta
         )
+
 
 controller = AgenticController()

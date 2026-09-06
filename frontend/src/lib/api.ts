@@ -52,6 +52,25 @@ export interface EvidenceRegionData {
   confidence: number;
 }
 
+export interface HeatmapPoint {
+  x: number;
+  y: number;
+  intensity: number;
+  radius?: number;
+  label?: string;
+}
+
+export interface HeatmapData {
+  type: 'change' | 'flood' | 'density' | 'spectral' | string;
+  title: string;
+  intensity_label: string;
+  overlay_url?: string;
+  palette?: 'thermal' | 'water' | 'spectral' | string;
+  points?: HeatmapPoint[];
+  max_intensity?: number;
+  min_intensity?: number;
+}
+
 export interface AnalysisResponseData {
   id: string;
   session_id?: string;
@@ -82,7 +101,10 @@ export interface AnalysisResponseData {
     evidence_regions?: EvidenceRegionData[];
     change_percentage?: number;
     affected_area?: string;
+    heatmap?: HeatmapData;
   };
+  heatmap?: HeatmapData;
+
   confidence?: {
     level: 'HIGH' | 'MEDIUM' | 'LOW';
     percent: number;

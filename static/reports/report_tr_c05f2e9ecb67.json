@@ -1,0 +1,145 @@
+{
+  "$schema": "https://satquery.ai/schema/v1/report.json",
+  "report_id": "SATQUERY-RPT-000",
+  "generated_at": "2026-09-06T17:19:33.228063Z",
+  "report_metadata": {
+    "mission_agency": "Earth Observation Mission Division",
+    "system": "SatQuery AI",
+    "version": "1.0.0-PROD",
+    "timestamp": "06 Sep 2026, 10:47 PM"
+  },
+  "query": "Has the built-up area increased, decreased, or remained unchanged between these dates?",
+  "task_classification": "Change Detection (Bi-temporal)",
+  "findings": {
+    "headline": "Built-up area increased in the eastern section (+25.2% expansion), mainly around the new road corridor and adjacent settlements.",
+    "key_observations": [
+      "Built-up Infrastructure: Substantial structural additions (+25.2% / 25.2 km\u00b2) concentrated along the eastern transport artery.",
+      "Surface Dynamics: Total detected land-cover transition is 29.0% (29.0 km\u00b2) across the 100 km\u00b2 observation footprint.",
+      "Hydrology & River: The main drainage waterway and riparian embankments maintained strict morphological stability.",
+      "Southern Transition: Peripheral bare land parcels in the south transitioned from fallow ground into active construction sites."
+    ],
+    "confidence_score": 92
+  },
+  "geospatial_metadata": {
+    "before_image": {
+      "date": "2022-01-15",
+      "sensor": "Sentinel-2 L2A"
+    },
+    "after_image": {
+      "date": "2024-06-20",
+      "sensor": "Sentinel-2 L2A"
+    },
+    "location": "Lat: 19.0760\u00b0 N, Lon: 72.8777\u00b0 E",
+    "resolution": "10 m (EPSG: 4326)",
+    "area": "10 km x 10 km (100 sq. km)"
+  },
+  "execution_summary": {
+    "task": "Change Detection (Bi-temporal)",
+    "input_type": "2 Images (Sentinel-2)",
+    "models_used": [
+      "Change Detection Model (RS-ChangeNet)",
+      "Change VQA Model (SatQuery-CDVQA)"
+    ],
+    "parameters": {
+      "Threshold": "0.35",
+      "Min Change Area": "0.01 km\u00b2"
+    },
+    "confidence": "92%",
+    "confidence_value": 0.92,
+    "time_taken": "18.42 seconds",
+    "status": "Completed",
+    "timestamp": "06 Sep 2026, 10:47 PM"
+  },
+  "workflow_steps": [
+    {
+      "step_num": 1,
+      "title": "1. Query Understanding",
+      "description": "Interpreting user query semantics & intent",
+      "status": "completed",
+      "details": "Classified intent as 'Change Detection (Bi-temporal)' based on query tokens."
+    },
+    {
+      "step_num": 2,
+      "title": "2. Input Validation",
+      "description": "Checking images, modality, metadata & compatibility",
+      "status": "completed",
+      "details": "Validated CRS (EPSG:4326), spatial overlap (100%), and 10m GSD resolution."
+    },
+    {
+      "step_num": 3,
+      "title": "3. Model Selection",
+      "description": "Selecting suitable models from registry",
+      "status": "completed",
+      "details": "Dynamically bound tools: [change_detection, change_vqa] from central registry."
+    },
+    {
+      "step_num": 4,
+      "title": "4. Change Detection",
+      "description": "Executing change detection workflow (ChangeNet + CDVQA)",
+      "status": "completed",
+      "details": "Inference executed successfully across GPU-accelerated specialist modules."
+    },
+    {
+      "step_num": 5,
+      "title": "5. Evidence Integration",
+      "description": "Combining outputs, estimating confidence & generating answer",
+      "status": "completed",
+      "details": "Fusing radiometric difference metrics, spatial masks, and semantic logits."
+    },
+    {
+      "step_num": 6,
+      "title": "6. Response Generation",
+      "description": "Preparing final response with visual evidence",
+      "status": "completed",
+      "details": "Rendered visual overlay map, confidence gauge, and auditable mission report."
+    }
+  ],
+  "spatial_evidence": [
+    {
+      "id": "chg_gen_1",
+      "label": "Eastern Settlement Corridor (Built-up Expansion)",
+      "normalized_bbox": [
+        0.25,
+        0.6,
+        0.75,
+        0.95
+      ],
+      "area_km2": 25.2,
+      "category": "change",
+      "confidence": 0.94
+    },
+    {
+      "id": "chg_gen_2",
+      "label": "Central Road Intersection Cluster",
+      "normalized_bbox": [
+        0.4,
+        0.45,
+        0.6,
+        0.65
+      ],
+      "area_km2": 3.1,
+      "category": "change",
+      "confidence": 0.91
+    },
+    {
+      "id": "chg_gen_3",
+      "label": "Southern Agricultural Parcel (Bare Soil Reduction)",
+      "normalized_bbox": [
+        0.72,
+        0.2,
+        0.9,
+        0.5
+      ],
+      "area_km2": 1.7,
+      "category": "change",
+      "confidence": 0.88
+    }
+  ],
+  "change_statistics": {
+    "total_area_km2": 100.0,
+    "changed_pct": 8.77,
+    "increase_pct": 7.9,
+    "decrease_pct": 0.77,
+    "moderate_pct": 0.09
+  }
+}

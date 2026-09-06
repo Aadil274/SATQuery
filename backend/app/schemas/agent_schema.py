@@ -96,4 +96,6 @@ class AnalysisResponse(BaseModel):
     confidence: Optional[Dict[str, Any]] = None
     trace: Optional[List[Dict[str, Any]]] = None
     elapsed_sec: Optional[float] = None
+    heatmap: Optional[Dict[str, Any]] = None
+
 

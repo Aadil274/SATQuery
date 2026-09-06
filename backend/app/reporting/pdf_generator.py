@@ -118,10 +118,20 @@ class MissionReportGenerator:
         
         story.append(Paragraph("<b>EXECUTIVE AI ANALYSIS & REASONING SUMMARY</b>", section_heading))
         story.append(Paragraph(f"<b>Primary Finding:</b> {headline}", body_style))
-        story.append(Spacer(1, 4))
         for b in bullets:
             story.append(Paragraph(f"• {b}", bullet_style))
-        story.append(Spacer(1, 10))
+        story.append(Spacer(1, 8))
+
+        # Heatmap & Spatial Intensity Metrics if present
+        heatmap_info = report_data.get("heatmap")
+        if heatmap_info:
+            story.append(Paragraph("<b>HEATMAP & SPATIAL INTENSITY METRICS</b>", section_heading))
+            story.append(Paragraph(f"<b>Overlay Type:</b> {heatmap_info.get('title', 'Heatmap')} ({heatmap_info.get('intensity_label', 'Intensity')})", body_style))
+            h_pts = heatmap_info.get("points", [])
+            for pt in h_pts:
+                story.append(Paragraph(f"• Hotspot: {pt.get('label', 'Zone')} (Center: [{pt.get('y', 0.5):.2f}, {pt.get('x', 0.5):.2f}]) · Intensity: {int(pt.get('intensity', 0.8)*100)}%", bullet_style))
+            story.append(Spacer(1, 8))
+
         
         # Geospatial Input Information Table
         story.append(Paragraph("<b>GEOSPATIAL & SENSOR SPECIFICATIONS</b>", section_heading))

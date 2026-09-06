@@ -22,12 +22,15 @@ class CaptioningTool(RemoteSensingTool):
     def execute(self, inputs: Dict[str, Any], parameters: Dict[str, Any]) -> Dict[str, Any]:
         images = inputs.get("images", [])
         img_arr = None
+        img_path = images[0] if images else None
         try:
-            im = Image.open(images[0]).convert('RGB')
-            img_arr = np.array(im)
+            if img_path:
+                im = Image.open(img_path).convert('RGB')
+                img_arr = np.array(im)
         except Exception:
             pass
-        return self.vlm.generate_dense_caption(img_arr, metadata=inputs.get("metadata"))
+        return self.vlm.generate_dense_caption(img_arr, metadata=inputs.get("metadata"), image_path=img_path)
+
 
     def confidence(self, output: Dict[str, Any]) -> float:
         return output.get("confidence", 0.94)
