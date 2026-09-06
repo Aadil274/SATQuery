@@ -44,18 +44,11 @@ export const Header: React.FC<HeaderProps> = ({ status, historyCount = 0, onOpen
         </div>
       </div>
 
-      {/* Center: Live UTC Clock & Telemetry */}
-      <div className="hidden md:flex items-center gap-4 telemetry">
+      {/* Center: Live UTC Clock */}
+      <div className="pointer-events-none absolute left-1/2 top-1/2 hidden -translate-x-1/2 -translate-y-1/2 md:flex items-center telemetry">
         <div className="flex items-center gap-1.5 px-3 py-1 rounded-full border border-cyan-500/20 bg-cyan-500/5 text-cyan-300">
           <Radio className="w-3 h-3 text-[#FF7300] sq-pulse" />
           <span>{utc || 'LIVE TELEMETRY'}</span>
-        </div>
-        <div className="hidden lg:flex items-center gap-1.5 text-slate-400">
-          <span>BigEarthNet.txt</span>
-          <span className="text-cyan-500/40">·</span>
-          <span>VRSBench</span>
-          <span className="text-cyan-500/40">·</span>
-          <span>CDVQA</span>
         </div>
       </div>
 
