@@ -92,8 +92,18 @@ export const Viewer: React.FC<ViewerProps> = ({ slots, analysis, running }) => {
     setPan({ x: 0, y: 0 });
   };
 
-  const baseImg = slots[0];
-  const topImg = slots[primaryIdx] || slots[0];
+  const leftImg = isPair
+    ? (task === 'cross_modal'
+        ? slots.find((s) => s.modality === 'optical') || slots[0]
+        : slots[0])
+    : slots[0];
+
+  const rightImg = isPair
+    ? (task === 'cross_modal'
+        ? slots.find((s) => s.modality === 'sar') || slots[1] || slots[0]
+        : slots[1] || slots[0])
+    : slots[0];
+
   const singleView = !isPair || !splitMode;
   const shown = singleView ? slots[layer] || slots[0] : null;
 
@@ -277,22 +287,22 @@ export const Viewer: React.FC<ViewerProps> = ({ slots, analysis, running }) => {
               ) : (
                 /* Case 2: Interactive Swipe Split Screen */
                 <>
-                  {/* Base Image (Underneath: T1 / Optical) */}
+                  {/* Base Image (Underneath: visible on right side: T2 / SAR) */}
                   <img
-                    src={baseImg.preview}
-                    alt="before observation"
+                    src={rightImg.preview}
+                    alt={rightImg.name || "after observation"}
                     draggable={false}
                     className="absolute inset-0 w-full h-full object-cover select-none"
                   />
 
-                  {/* Overlaid Clipped Image (Top: T2 / SAR) */}
+                  {/* Overlaid Clipped Image (Top: visible on left side: T1 / Optical) */}
                   <div
                     className="absolute inset-0 overflow-hidden"
                     style={{ clipPath: `inset(0 ${100 - split}% 0 0)` }}
                   >
                     <img
-                      src={topImg.preview}
-                      alt="after observation"
+                      src={leftImg.preview}
+                      alt={leftImg.name || "before observation"}
                       draggable={false}
                       className="w-full h-full object-cover select-none"
                     />
@@ -333,10 +343,14 @@ export const Viewer: React.FC<ViewerProps> = ({ slots, analysis, running }) => {
 
                   {/* Split Labels */}
                   <span className="absolute top-2 left-2 telemetry bg-black/75 rounded px-2 py-0.5 z-10 border border-cyan-500/20 text-cyan-300">
-                    {task === 'change' ? 'T1 · BEFORE (2024)' : 'OPTICAL (MSI)'}
+                    {task === 'change'
+                      ? `T1 · BEFORE (${leftImg.timestamp ? leftImg.timestamp.slice(0, 4) : '2024'})`
+                      : (leftImg.modality === 'sar' ? 'SAR (C-BAND)' : 'OPTICAL (MSI)')}
                   </span>
                   <span className="absolute top-2 right-2 telemetry bg-black/75 rounded px-2 py-0.5 z-10 border border-[#FF7300]/30 text-[#FF7300]">
-                    {task === 'change' ? 'T2 · AFTER (2026)' : 'SAR (C-BAND)'}
+                    {task === 'change'
+                      ? `T2 · AFTER (${rightImg.timestamp ? rightImg.timestamp.slice(0, 4) : '2026'})`
+                      : (rightImg.modality === 'sar' ? 'SAR (C-BAND)' : 'OPTICAL (MSI)')}
                   </span>
                 </>
               )}

@@ -9,8 +9,12 @@ interface HeaderProps {
 
 export const Header: React.FC<HeaderProps> = ({ status, historyCount = 0, onOpenHistory }) => {
   const [utc, setUtc] = useState('');
-  const [fontSize, setFontSize] = useState<'normal' | 'large' | 'xlarge'>(() => {
-    return (localStorage.getItem('sq_font_size') as any) || 'normal';
+  const [fontSize, setFontSize] = useState<'100' | '125' | '150' | '175'>(() => {
+    const saved = localStorage.getItem('sq_font_size');
+    if (saved === '175' || saved === '150' || saved === '125' || saved === '100') return saved;
+    if (saved === 'xlarge') return '150';
+    if (saved === 'large') return '125';
+    return '100';
   });
 
   useEffect(() => {
@@ -20,9 +24,10 @@ export const Header: React.FC<HeaderProps> = ({ status, historyCount = 0, onOpen
 
   const cycleFontSize = () => {
     setFontSize((prev) => {
-      if (prev === 'normal') return 'large';
-      if (prev === 'large') return 'xlarge';
-      return 'normal';
+      if (prev === '100') return '125';
+      if (prev === '125') return '150';
+      if (prev === '150') return '175';
+      return '100';
     });
   };
 
@@ -90,12 +95,12 @@ export const Header: React.FC<HeaderProps> = ({ status, historyCount = 0, onOpen
         <button
           data-testid="font-size-button"
           aria-label="Adjust font size"
-          title={`Text Size: ${fontSize === 'normal' ? 'Standard (100%)' : fontSize === 'large' ? 'Large (112%)' : 'Extra Large (125%)'} · Click to increase`}
+          title={`Text Size: ${fontSize}% ${fontSize === '100' ? '(Standard)' : fontSize === '125' ? '(Medium)' : fontSize === '150' ? '(Large)' : '(Max Accessibility 175%)'} · Click to increase`}
           onClick={cycleFontSize}
           className="sq-btn flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-cyan-500/30 hover:border-cyan-400 bg-cyan-500/5 hover:bg-cyan-500/15 text-cyan-300 text-xs font-mono-x transition-all"
         >
           <ALargeSmall className="w-3.5 h-3.5 text-[#00F0FF]" />
-          <span>TEXT: {fontSize === 'normal' ? '100%' : fontSize === 'large' ? '112%' : '125%'}</span>
+          <span>TEXT: {fontSize}%</span>
         </button>
 
         {/* History Button */}

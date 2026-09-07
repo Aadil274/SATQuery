@@ -29,7 +29,7 @@ class CaptioningTool(RemoteSensingTool):
                 img_arr = np.array(im)
         except Exception:
             pass
-        return self.vlm.generate_dense_caption(img_arr, metadata=inputs.get("metadata"), image_path=img_path)
+        return self.vlm.generate_dense_caption(img_arr, metadata=inputs.get("metadata"), image_path=img_path, query=inputs.get("query"))
 
 
     def confidence(self, output: Dict[str, Any]) -> float:

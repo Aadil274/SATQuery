@@ -14,19 +14,26 @@
 
 html {
   font-size: 15px;
-  transition: font-size 0.18s ease-in-out;
+  transition: font-size 0.2s ease-in-out;
 }
 
+html[data-font-size="100"],
 html[data-font-size="normal"] {
   font-size: 15px;
 }
 
+html[data-font-size="125"],
 html[data-font-size="large"] {
-  font-size: 16.5px;
+  font-size: 18.75px;
 }
 
+html[data-font-size="150"],
 html[data-font-size="xlarge"] {
-  font-size: 18px;
+  font-size: 22.5px;
+}
+
+html[data-font-size="175"] {
+  font-size: 26.25px;
 }
 
 body {

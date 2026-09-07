@@ -126,7 +126,7 @@ export const BottomDock: React.FC<BottomDockProps> = ({
 
       {/* Dock Content Body */}
       {open && (
-        <div className="h-[185px] overflow-y-auto px-4 py-2.5 border-t border-cyan-500/10 bg-[#0B0E14]/80 font-mono-x text-xs">
+        <div className="min-h-[12rem] max-h-[35vh] overflow-y-auto px-4 py-2.5 border-t border-cyan-500/10 bg-[#0B0E14]/80 font-mono-x text-xs">
           {/* TAB 1: Live Trace */}
           {tab === 'trace' && (
             <div>

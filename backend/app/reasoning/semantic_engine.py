@@ -283,6 +283,32 @@ class GeospatialReasoningEngine:
             intensity_label = "Inundation Extent & Depth Severity"
             palette = "water"
 
+        elif heatmap_type in ["fusion", "sar", "cross_modal"]:
+            # Multimodal Radar + Optical Fusion Heatmap
+            y, x = np.ogrid[:h, :w]
+            d1 = np.exp(-(((x - 0.68 * w) ** 2) / (2 * (0.16 * w) ** 2) + ((y - 0.35 * h) ** 2) / (2 * (0.22 * h) ** 2)))
+            d2 = np.exp(-(((x - 0.38 * w) ** 2) / (2 * (0.12 * w) ** 2) + ((y - 0.48 * h) ** 2) / (2 * (0.28 * h) ** 2)))
+            d3 = np.exp(-(((x - 0.78 * w) ** 2) / (2 * (0.14 * w) ** 2) + ((y - 0.65 * h) ** 2) / (2 * (0.16 * h) ** 2)))
+            intensity_map = np.clip(d1 * 0.95 + d2 * 0.88 + d3 * 0.82, 0, 1)
+
+            mask = intensity_map > 0.12
+            norm_val = np.clip((intensity_map[mask] - 0.12) / 0.88, 0, 1)
+
+            # High-contrast dual orange-cyan palette for microwave vs optical
+            overlay_rgba[mask, 0] = (255 * norm_val).astype(np.uint8)
+            overlay_rgba[mask, 1] = (115 * norm_val + 140 * (1 - norm_val)).astype(np.uint8)
+            overlay_rgba[mask, 2] = (255 * (1 - norm_val)).astype(np.uint8)
+            overlay_rgba[mask, 3] = (195 * norm_val + 50).astype(np.uint8)
+
+            points = [
+                {"x": 0.68, "y": 0.35, "intensity": 0.96, "radius": 0.22, "label": "Sub-Cloud Built-up Double-Bounce Backscatter"},
+                {"x": 0.38, "y": 0.48, "intensity": 0.90, "radius": 0.20, "label": "Specular Radar Dark Hydrological Basin"},
+                {"x": 0.78, "y": 0.65, "intensity": 0.84, "radius": 0.16, "label": "Cross-Modal Structural Alignment Node"}
+            ]
+            title = "Multimodal Radar-Optical Fusion Heatmap"
+            intensity_label = "Microwave Backscatter & Feature Alignment"
+            palette = "fusion"
+
         else:
             # Structure / Built-up Density Heatmap
             y, x = np.ogrid[:h, :w]
@@ -367,9 +393,14 @@ class GeospatialReasoningEngine:
         is_density = any(k in q_lower for k in ["density", "cluster", "concentration", "impervious"])
 
         # Decide if heatmap should be synthesized
-        heatmap_needed = is_change_intent or is_flood or is_density or "heat" in q_lower or "map" in q_lower or is_pair
+        heatmap_needed = True
 
-        heatmap_type = "change" if is_change_intent or (is_pair and not is_sar) else ("flood" if (is_flood or is_water) else "density")
+        heatmap_type = (
+            "fusion" if (is_sar or task_type_str in ["cross_modal", "optical_sar"])
+            else ("change" if is_change_intent or (is_pair and not is_sar and task_type_str not in ["cross_modal", "optical_sar"])
+            else ("flood" if (is_flood or is_water)
+            else "density"))
+        )
         overlay_url = ""
         heatmap_points = []
         heatmap_meta = None
@@ -447,7 +478,7 @@ class GeospatialReasoningEngine:
                 ]
 
         # 3. BI-TEMPORAL CHANGE QUERIES
-        elif is_change_intent or is_pair:
+        elif (is_change_intent or is_pair) and not (is_sar or task_type_str in ["cross_modal", "optical_sar"]):
             if is_vegetation or "lost" in q_lower or "reduction" in q_lower:
                 veg_loss_pct = round(dec_pct * 1.1, 1)
                 veg_loss_km2 = round(veg_loss_pct * 1.0, 2)
@@ -493,7 +524,7 @@ class GeospatialReasoningEngine:
                 ]
 
         # 4. OPTICAL + SAR FUSION QUERIES
-        elif is_sar:
+        elif is_sar or task_type_str in ["cross_modal", "optical_sar"]:
             headline = "Joint Optical + SAR fusion successfully disambiguated surface features and penetrated optical cloud haze."
             bullets = [
                 "Microwave Penetration: Sentinel-1 C-Band (VV/VH) penetrated thin cloud cover, revealing 16.8 km² of obscured surface topography.",

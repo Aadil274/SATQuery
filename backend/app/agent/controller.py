@@ -242,15 +242,18 @@ class AgenticController:
             
         elif task_type == TaskType.CAPTIONING:
             cap_tool = tool_registry.get("captioning")
-            cap_out = cap_tool.execute({"images": image_paths}, {})
+            cap_out = cap_tool.execute({"images": image_paths, "query": query}, {})
             
             headline_answer = cap_out["caption"]
-            bullet_points = [
+            bullet_points = cap_out.get("bullet_points") or [
                 f"Land Cover: {k.replace('_', ' ').title()}: {v}"
                 for k, v in cap_out.get("land_cover_breakdown", {}).items()
             ]
             confidence_val = cap_out.get("confidence", 0.94)
-            overlay_url = image_paths[0] if image_paths else "/static/samples/single_image.jpg"
+            if cap_out.get("evidence_regions"):
+                evidence_regions = [EvidenceRegion(**r) for r in cap_out.get("evidence_regions", [])]
+            heatmap_meta = cap_out.get("heatmap")
+            overlay_url = (heatmap_meta.get("overlay_url") if heatmap_meta else None) or (image_paths[0] if image_paths else "/static/samples/single_image.jpg")
             
             image_cards = [
                 ImageCardInfo(
@@ -399,8 +402,15 @@ class AgenticController:
         if heatmap_meta is None:
             from backend.app.reasoning.semantic_engine import semantic_engine
             q_low = query.lower()
-            if any(k in q_low for k in ["heat", "flood", "water", "inundat", "change", "densit", "built", "urban", "diff"]) or len(image_paths) >= 2:
-                h_type = "change" if len(image_paths) >= 2 else ("flood" if any(k in q_low for k in ["flood", "water", "inundat"]) else "density")
+            if any(k in q_low for k in ["heat", "flood", "water", "inundat", "change", "densit", "built", "urban", "diff", "sar", "radar", "fusion"]) or len(image_paths) >= 2:
+                if task_type == TaskType.OPTICAL_SAR or "sar" in q_low or "radar" in q_low or "fusion" in q_low:
+                    h_type = "fusion"
+                elif task_type == TaskType.CHANGE_DETECTION or (len(image_paths) >= 2 and any(k in q_low for k in ["change", "diff", "between", "before", "after", "increase", "decrease"])):
+                    h_type = "change"
+                elif any(k in q_low for k in ["flood", "water", "inundat"]):
+                    h_type = "flood"
+                else:
+                    h_type = "density"
                 props = semantic_engine.analyze_scene_properties(image_paths)
                 _, _, heatmap_meta = semantic_engine.generate_raster_heatmap(h_type, props, query)
 
