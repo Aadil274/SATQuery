@@ -12,6 +12,23 @@
   --ruby: #FF1744;
 }
 
+html {
+  font-size: 15px;
+  transition: font-size 0.18s ease-in-out;
+}
+
+html[data-font-size="normal"] {
+  font-size: 15px;
+}
+
+html[data-font-size="large"] {
+  font-size: 16.5px;
+}
+
+html[data-font-size="xlarge"] {
+  font-size: 18px;
+}
+
 body {
   margin: 0;
   padding: 0;
@@ -41,10 +58,10 @@ body {
 
 .telemetry {
   font-family: 'JetBrains Mono', monospace;
-  font-size: 0.65rem;
-  letter-spacing: 0.18em;
+  font-size: 0.72rem;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: rgba(0, 240, 255, 0.75);
+  color: rgba(0, 240, 255, 0.82);
 }
 
 /* Space-grade scrollbar */

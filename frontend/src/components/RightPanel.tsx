@@ -135,7 +135,7 @@ export const RightPanel: React.FC<RightPanelProps> = ({
               key={i}
               data-testid={`suggestion-${i}`}
               onClick={() => setQuery(s)}
-              className="sq-btn text-[10px] px-2.5 py-1 rounded-full border border-cyan-500/20 text-slate-400 hover:text-cyan-300 hover:border-cyan-400/50 bg-cyan-500/5 transition-all text-left"
+              className="sq-btn text-xs px-2.5 py-1 rounded-full border border-cyan-500/20 text-slate-400 hover:text-cyan-300 hover:border-cyan-400/50 bg-cyan-500/5 transition-all text-left"
             >
               {s}
             </button>
@@ -196,12 +196,12 @@ export const RightPanel: React.FC<RightPanelProps> = ({
 
               {/* Models Deployed */}
               <div className="pt-2 border-t border-cyan-500/15">
-                <span className="text-[10px] text-cyan-500/70 font-mono-x tracking-wider uppercase">
+                <span className="text-xs text-cyan-500/70 font-mono-x tracking-wider uppercase">
                   DEPLOYED SPECIALIST MODELS
                 </span>
                 <div className="mt-1 space-y-1">
                   {((analysis.plan?.models) || ['SatQuery-RS-VLM']).map((m, i) => (
-                    <div key={i} className="flex items-center gap-1.5 text-[11px] text-slate-300 font-mono-x">
+                    <div key={i} className="flex items-center gap-1.5 text-xs text-slate-300 font-mono-x">
                       <ChevronRight className="w-3 h-3 text-emerald-400 shrink-0" />
                       <span>{m}</span>
                     </div>
@@ -217,12 +217,12 @@ export const RightPanel: React.FC<RightPanelProps> = ({
             >
               <div className="telemetry text-[#FF7300] flex items-center justify-between">
                 <span>SATQUERY-RS-VLM · FINDINGS</span>
-                <span className="text-[9px] px-1.5 py-0.5 rounded bg-[#FF7300]/20 text-[#FF7300]">
+                <span className="text-[10.5px] px-2 py-0.5 rounded bg-[#FF7300]/20 text-[#FF7300] font-mono-x">
                   LoRA ADAPTED
                 </span>
               </div>
 
-              <p className="text-xs text-slate-100 leading-relaxed font-sans whitespace-pre-wrap">
+              <p className="text-sm text-slate-100 leading-relaxed font-sans whitespace-pre-wrap">
                 {answer}
               </p>
 
@@ -230,7 +230,7 @@ export const RightPanel: React.FC<RightPanelProps> = ({
               {((r?.primary_changes && r.primary_changes.length > 0) ? r.primary_changes : (analysis.bullet_points || [])).length > 0 && (
                 <ul className="mt-2 space-y-1.5 border-t border-cyan-500/15 pt-2">
                   {((r?.primary_changes && r.primary_changes.length > 0) ? r.primary_changes : (analysis.bullet_points || [])).map((change, i) => (
-                    <li key={i} className="text-[11px] text-slate-200 flex items-start gap-1.5 font-sans leading-relaxed">
+                    <li key={i} className="text-xs text-slate-200 flex items-start gap-1.5 font-sans leading-relaxed">
                       <span className="text-[#FF7300] shrink-0 font-bold">▸</span>
                       <span>{change}</span>
                     </li>
@@ -240,12 +240,12 @@ export const RightPanel: React.FC<RightPanelProps> = ({
 
               {/* Active Spatial Heatmap Telemetry Badge */}
               {(r?.heatmap || analysis.heatmap) && (
-                <div className="mt-2 pt-2 border-t border-cyan-500/15 flex items-center justify-between text-[11px] font-mono-x text-amber-300 bg-amber-500/10 px-2.5 py-1.5 rounded border border-amber-500/25">
+                <div className="mt-2 pt-2 border-t border-cyan-500/15 flex items-center justify-between text-xs font-mono-x text-amber-300 bg-amber-500/10 px-2.5 py-1.5 rounded border border-amber-500/25">
                   <div className="flex items-center gap-1.5">
                     <span className="w-2 h-2 rounded-full bg-[#FF1744] sq-pulse" />
                     <span className="font-semibold">{(r?.heatmap || analysis.heatmap)?.title}</span>
                   </div>
-                  <span className="text-[10px] text-amber-400 font-mono-x">
+                  <span className="text-[11px] text-amber-400 font-mono-x">
                     ACTIVE OVERLAY
                   </span>
                 </div>
@@ -257,7 +257,7 @@ export const RightPanel: React.FC<RightPanelProps> = ({
                   {r.land_cover.map((tag, i) => (
                     <span
                       key={i}
-                      className="text-[10px] px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-300 border border-emerald-500/25 font-mono-x"
+                      className="text-[11px] px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-300 border border-emerald-500/25 font-mono-x"
                     >
                       {tag}
                     </span>
@@ -267,7 +267,7 @@ export const RightPanel: React.FC<RightPanelProps> = ({
 
               {/* Optical + SAR Complementary Insight */}
               {r?.fusion_insight && (
-                <div className="mt-2 pt-2 border-t border-cyan-500/15 text-[11px] text-cyan-300/90 border-l-2 border-cyan-500/50 pl-2 font-sans italic">
+                <div className="mt-2 pt-2 border-t border-cyan-500/15 text-xs text-cyan-300/90 border-l-2 border-cyan-500/50 pl-2.5 font-sans italic leading-relaxed">
                   {r.fusion_insight}
                 </div>
               )}
@@ -298,7 +298,7 @@ export const RightPanel: React.FC<RightPanelProps> = ({
               </div>
 
               {/* Calibration Breakdown Table */}
-              <div className="pt-2 border-t border-white/5 space-y-1 font-mono-x text-[10px]">
+              <div className="pt-2 border-t border-white/5 space-y-1 font-mono-x text-xs">
                 {Object.entries(c.breakdown || {}).map(([k, v]) => (
                   <div key={k} className="flex justify-between text-slate-300">
                     <span className="text-slate-400">{k}:</span>

@@ -438,7 +438,7 @@ export const Viewer: React.FC<ViewerProps> = ({ slots, analysis, running }) => {
                     >
                       {/* BBox Label Tag */}
                       <span
-                        className="absolute -top-5 left-0 whitespace-nowrap text-[10px] font-mono-x font-bold px-1.5 py-0.2 rounded shadow"
+                        className="absolute -top-5 left-0 whitespace-nowrap text-[11px] font-mono-x font-bold px-1.5 py-0.2 rounded shadow"
                         style={{
                           background: c.stroke,
                           color: '#0B0E14'
@@ -458,13 +458,13 @@ export const Viewer: React.FC<ViewerProps> = ({ slots, analysis, running }) => {
       {isHeatmapEligible && showHeatmap && (
         <div className="absolute bottom-12 left-3 z-20 sq-glass rounded-lg p-2.5 border border-cyan-500/25 max-w-xs text-xs font-mono-x sq-fade-up shadow-xl backdrop-blur-md">
           <div className="flex items-center justify-between gap-3 mb-1.5">
-            <div className="flex items-center gap-1.5 font-bold text-slate-200 text-[11px]">
+            <div className="flex items-center gap-1.5 font-bold text-slate-200 text-xs">
               <Flame className={`w-3.5 h-3.5 ${heatmap?.palette === 'water' || heatmap?.type === 'flood' ? 'text-[#00F0FF]' : 'text-[#FF1744]'}`} />
               <span>{heatmap?.title || (task === 'change' ? 'CHANGE INTENSITY HEATMAP' : 'SPATIAL DENSITY HEATMAP')}</span>
             </div>
             <button
               onClick={() => setHeatmapOpacity((o) => (o === 100 ? 40 : o === 40 ? 75 : 100))}
-              className="text-[10px] text-cyan-400 hover:text-cyan-300 bg-cyan-500/10 px-1.5 py-0.5 rounded border border-cyan-500/20"
+              className="text-xs text-cyan-400 hover:text-cyan-300 bg-cyan-500/10 px-1.5 py-0.5 rounded border border-cyan-500/20"
               title="Toggle Heatmap Opacity"
             >
               OPACITY: {heatmapOpacity}%
@@ -479,7 +479,7 @@ export const Viewer: React.FC<ViewerProps> = ({ slots, analysis, running }) => {
                   : 'linear-gradient(to right, rgba(255,214,0,0.4), #FF7300, #FF1744)'
               }}
             />
-            <div className="flex justify-between text-[10px] text-slate-400">
+            <div className="flex justify-between text-xs text-slate-400">
               <span>Low ({heatmap?.intensity_label?.includes('Inundat') ? 'Shallow' : 'Baseline'})</span>
               <span>High ({heatmap?.intensity_label?.includes('Inundat') ? 'Submerged' : 'Maximum'})</span>
             </div>

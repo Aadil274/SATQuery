@@ -124,7 +124,7 @@ export const LeftPanel: React.FC<LeftPanelProps> = ({
                     <button
                       title="Click to toggle Modality (Optical / SAR)"
                       onClick={() => onToggleModality(idx)}
-                      className={`absolute bottom-0 inset-x-0 py-0.5 text-[9px] font-mono-x font-bold flex items-center justify-center gap-0.5 ${
+                      className={`absolute bottom-0 inset-x-0 py-0.5 text-[10px] font-mono-x font-bold flex items-center justify-center gap-0.5 ${
                         slot.modality === 'sar'
                           ? 'bg-[#FF7300] text-black'
                           : 'bg-[#00F0FF] text-black'
@@ -143,7 +143,7 @@ export const LeftPanel: React.FC<LeftPanelProps> = ({
                   </div>
 
                   {/* Metadata */}
-                  <div className="flex-1 min-w-0 text-[11px] font-mono-x">
+                  <div className="flex-1 min-w-0 text-xs font-mono-x">
                     <div className="flex items-center justify-between">
                       <span className="font-bold text-slate-200 truncate">{slot.name}</span>
                       <button
@@ -155,7 +155,7 @@ export const LeftPanel: React.FC<LeftPanelProps> = ({
                       </button>
                     </div>
 
-                    <div className="text-slate-400 mt-1 space-y-0.5 text-[10px]">
+                    <div className="text-slate-400 mt-1 space-y-0.5 text-[11px]">
                       <div className="text-cyan-300/80 truncate">
                         {slot.meta?.sensor || (slot.modality === 'sar' ? 'Sentinel-1 SAR' : 'Sentinel-2 MSI')}
                       </div>
@@ -209,10 +209,10 @@ export const LeftPanel: React.FC<LeftPanelProps> = ({
                           <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0 ml-1" />
                         )}
                       </div>
-                      <div className="text-[10px] text-cyan-400/70 font-mono-x mt-0.5">
+                      <div className="text-[11px] text-cyan-400/70 font-mono-x mt-0.5">
                         {preset.subtitle}
                       </div>
-                      <div className="text-[11px] text-slate-400 mt-1 line-clamp-1 italic">
+                      <div className="text-xs text-slate-400 mt-1 line-clamp-1 italic">
                         "{preset.query}"
                       </div>
                     </div>
@@ -224,10 +224,10 @@ export const LeftPanel: React.FC<LeftPanelProps> = ({
         </div>
 
         {/* SECTION 3: Technical Specifications Footer */}
-        <div className="pt-2 border-t border-cyan-500/15 text-[10px] font-mono-x text-slate-500 space-y-1">
+        <div className="pt-2 border-t border-cyan-500/15 text-[11px] font-mono-x text-slate-400 space-y-1">
           <div>Raster Coregistration: <span className="text-emerald-400">Sub-pixel (0.04 px)</span></div>
           <div>CRS Transformation: <span className="text-cyan-300">WGS84 / EPSG:4326</span></div>
-          <div>Formats: <span className="text-slate-400">GeoTIFF (.tif), PNG, JPG</span></div>
+          <div>Formats: <span className="text-slate-300">GeoTIFF (.tif), PNG, JPG</span></div>
         </div>
       </div>
     </aside>

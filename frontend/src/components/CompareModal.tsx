@@ -44,7 +44,7 @@ export const CompareModal: React.FC<CompareModalProps> = ({ open, onClose, entri
           {/* Top Metrics Banner */}
           <div className="rounded-lg border border-cyan-500/20 bg-[#121824] p-3 flex items-center justify-around font-mono-x text-xs">
             <div className="text-center">
-              <div className="text-slate-400 text-[10px]">ANALYSIS A CONFIDENCE</div>
+              <div className="text-slate-400 text-xs">ANALYSIS A CONFIDENCE</div>
               <div className="text-lg font-bold text-emerald-400">{aConf}%</div>
             </div>
             <div className="flex items-center gap-1.5 text-slate-400">
@@ -54,7 +54,7 @@ export const CompareModal: React.FC<CompareModalProps> = ({ open, onClose, entri
               </span>
             </div>
             <div className="text-center">
-              <div className="text-slate-400 text-[10px]">ANALYSIS B CONFIDENCE</div>
+              <div className="text-slate-400 text-xs">ANALYSIS B CONFIDENCE</div>
               <div className="text-lg font-bold text-emerald-400">{bConf}%</div>
             </div>
           </div>
@@ -79,7 +79,7 @@ export const CompareModal: React.FC<CompareModalProps> = ({ open, onClose, entri
 
               {/* Query */}
               <div className="rounded bg-[#121824] p-3 border border-cyan-500/15">
-                <span className="text-[10px] text-cyan-400/70 font-mono-x uppercase block mb-1">Query</span>
+                <span className="text-xs text-cyan-400/70 font-mono-x uppercase block mb-1">Query</span>
                 <p className="text-xs text-slate-200">"{a.query}"</p>
               </div>
 
@@ -96,7 +96,7 @@ export const CompareModal: React.FC<CompareModalProps> = ({ open, onClose, entri
               </div>
 
               {/* Regions Count */}
-              <div className="text-[11px] font-mono-x text-slate-400">
+              <div className="text-xs font-mono-x text-slate-400">
                 Evidence Regions: <span className="text-emerald-400 font-bold">{a.analysis.result?.evidence_regions?.length || 0}</span> grounded
               </div>
             </div>
@@ -119,7 +119,7 @@ export const CompareModal: React.FC<CompareModalProps> = ({ open, onClose, entri
 
               {/* Query */}
               <div className="rounded bg-[#121824] p-3 border border-cyan-500/15">
-                <span className="text-[10px] text-cyan-400/70 font-mono-x uppercase block mb-1">Query</span>
+                <span className="text-xs text-cyan-400/70 font-mono-x uppercase block mb-1">Query</span>
                 <p className="text-xs text-slate-200">"{b.query}"</p>
               </div>
 

@@ -126,7 +126,7 @@ export const BottomDock: React.FC<BottomDockProps> = ({
 
       {/* Dock Content Body */}
       {open && (
-        <div className="h-[175px] overflow-y-auto px-4 py-2.5 border-t border-cyan-500/10 bg-[#0B0E14]/80 font-mono-x text-[11px]">
+        <div className="h-[185px] overflow-y-auto px-4 py-2.5 border-t border-cyan-500/10 bg-[#0B0E14]/80 font-mono-x text-xs">
           {/* TAB 1: Live Trace */}
           {tab === 'trace' && (
             <div>
@@ -187,7 +187,7 @@ export const BottomDock: React.FC<BottomDockProps> = ({
                 <div>Adaptation: <span className="text-slate-400">{defaultModelInfo.adaptation}</span></div>
                 <div>Method: <span className="text-cyan-300">{defaultModelInfo.training?.method}</span> ({defaultModelInfo.training?.trainable_params})</div>
                 <div>Training: <span className="text-slate-400">{defaultModelInfo.training?.samples} · {defaultModelInfo.training?.epochs} epochs</span></div>
-                <div className="mt-1.5 inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/40 text-emerald-300 text-[10px]">
+                <div className="mt-1.5 inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/40 text-emerald-300 text-xs">
                   <CheckCircle2 className="w-3 h-3" />
                   <span>{defaultModelInfo.status}</span>
                 </div>
@@ -207,7 +207,7 @@ export const BottomDock: React.FC<BottomDockProps> = ({
                   {(defaultModelInfo.tasks || []).map((taskName: string, idx: number) => (
                     <span
                       key={idx}
-                      className="px-1.5 py-0.5 rounded bg-cyan-500/10 text-cyan-300 border border-cyan-500/25 text-[10px]"
+                      className="px-1.5 py-0.5 rounded bg-cyan-500/10 text-cyan-300 border border-cyan-500/25 text-xs"
                     >
                       {taskName}
                     </span>
@@ -220,7 +220,7 @@ export const BottomDock: React.FC<BottomDockProps> = ({
                 <div className="telemetry mb-1 text-cyan-400">
                   <span>DOMAIN ADAPTATION GAINS</span>
                 </div>
-                <table className="w-full text-[10px]">
+                <table className="w-full text-xs">
                   <thead>
                     <tr className="text-cyan-500/70 border-b border-cyan-500/15">
                       <th className="text-left font-normal pb-1">Benchmark</th>
@@ -249,30 +249,30 @@ export const BottomDock: React.FC<BottomDockProps> = ({
             <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
               <div className="rounded border border-cyan-500/20 bg-cyan-500/5 p-2 space-y-1">
                 <div className="text-cyan-300 font-bold">BigEarthNet.txt</div>
-                <div className="text-[10px] text-slate-400">arXiv:2603.29630 Official Dataset</div>
-                <div className="text-slate-300 text-[10px]">464,044 S1/S2 pairs</div>
-                <div className="text-emerald-400 text-[10px]">9.6M text annotations</div>
+                <div className="text-xs text-slate-400">arXiv:2603.29630 Official Dataset</div>
+                <div className="text-slate-300 text-xs">464,044 S1/S2 pairs</div>
+                <div className="text-emerald-400 text-xs">9.6M text annotations</div>
               </div>
 
               <div className="rounded border border-cyan-500/20 bg-cyan-500/5 p-2 space-y-1">
                 <div className="text-cyan-300 font-bold">VRSBench</div>
-                <div className="text-[10px] text-slate-400">Referring Grounding & VQA</div>
-                <div className="text-slate-300 text-[10px]">29,614 high-res images</div>
-                <div className="text-emerald-400 text-[10px]">123,221 QA & BBox pairs</div>
+                <div className="text-xs text-slate-400">Referring Grounding & VQA</div>
+                <div className="text-slate-300 text-xs">29,614 high-res images</div>
+                <div className="text-emerald-400 text-xs">123,221 QA & BBox pairs</div>
               </div>
 
               <div className="rounded border border-cyan-500/20 bg-cyan-500/5 p-2 space-y-1">
                 <div className="text-cyan-300 font-bold">RSVQA-HR</div>
-                <div className="text-[10px] text-slate-400">High-Resolution Remote Sensing</div>
-                <div className="text-slate-300 text-[10px]">0.15m - 10m GSD Imagery</div>
-                <div className="text-emerald-400 text-[10px]">86.8% Top-1 Accuracy</div>
+                <div className="text-xs text-slate-400">High-Resolution Remote Sensing</div>
+                <div className="text-slate-300 text-xs">0.15m - 10m GSD Imagery</div>
+                <div className="text-emerald-400 text-xs">86.8% Top-1 Accuracy</div>
               </div>
 
               <div className="rounded border border-cyan-500/20 bg-cyan-500/5 p-2 space-y-1">
                 <div className="text-cyan-300 font-bold">CDVQA Benchmark</div>
-                <div className="text-[10px] text-slate-400">Change Detection VQA</div>
-                <div className="text-slate-300 text-[10px]">Bi-temporal image pairs</div>
-                <div className="text-emerald-400 text-[10px]">89.1% Change VQA Score</div>
+                <div className="text-xs text-slate-400">Change Detection VQA</div>
+                <div className="text-slate-300 text-xs">Bi-temporal image pairs</div>
+                <div className="text-emerald-400 text-xs">89.1% Change VQA Score</div>
               </div>
             </div>
           )}

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Satellite, History, Radio, Activity } from 'lucide-react';
+import { Satellite, History, Radio, Activity, ALargeSmall } from 'lucide-react';
 
 interface HeaderProps {
   status: string;
@@ -9,6 +9,22 @@ interface HeaderProps {
 
 export const Header: React.FC<HeaderProps> = ({ status, historyCount = 0, onOpenHistory }) => {
   const [utc, setUtc] = useState('');
+  const [fontSize, setFontSize] = useState<'normal' | 'large' | 'xlarge'>(() => {
+    return (localStorage.getItem('sq_font_size') as any) || 'normal';
+  });
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-font-size', fontSize);
+    localStorage.setItem('sq_font_size', fontSize);
+  }, [fontSize]);
+
+  const cycleFontSize = () => {
+    setFontSize((prev) => {
+      if (prev === 'normal') return 'large';
+      if (prev === 'large') return 'xlarge';
+      return 'normal';
+    });
+  };
 
   useEffect(() => {
     const tick = () => {
@@ -70,16 +86,29 @@ export const Header: React.FC<HeaderProps> = ({ status, historyCount = 0, onOpen
           </span>
         </div>
 
+        {/* Font Size Adjuster Button */}
+        <button
+          data-testid="font-size-button"
+          aria-label="Adjust font size"
+          title={`Text Size: ${fontSize === 'normal' ? 'Standard (100%)' : fontSize === 'large' ? 'Large (112%)' : 'Extra Large (125%)'} · Click to increase`}
+          onClick={cycleFontSize}
+          className="sq-btn flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-cyan-500/30 hover:border-cyan-400 bg-cyan-500/5 hover:bg-cyan-500/15 text-cyan-300 text-xs font-mono-x transition-all"
+        >
+          <ALargeSmall className="w-3.5 h-3.5 text-[#00F0FF]" />
+          <span>TEXT: {fontSize === 'normal' ? '100%' : fontSize === 'large' ? '112%' : '125%'}</span>
+        </button>
+
         {/* History Button */}
         <button
           data-testid="history-button"
+          aria-label="View history"
           onClick={onOpenHistory}
           className="sq-btn flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-cyan-500/30 hover:border-cyan-400 bg-cyan-500/5 hover:bg-cyan-500/15 text-cyan-300 text-xs font-mono-x transition-all"
         >
           <History className="w-3.5 h-3.5 text-[#FF7300]" />
           <span>HISTORY</span>
           {historyCount > 0 && (
-            <span className="ml-1 px-1.5 py-0.2 rounded-full bg-[#FF7300] text-black text-[10px] font-bold">
+            <span className="ml-1 px-1.5 py-0.2 rounded-full bg-[#FF7300] text-black text-xs font-bold">
               {historyCount}
             </span>
           )}

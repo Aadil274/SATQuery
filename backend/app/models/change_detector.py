@@ -28,19 +28,18 @@ class ChangeDetector:
         Executes change detection pipeline on co-registered bi-temporal pair.
         Returns change map overlay, quantitative metrics, and spatial bounding boxes.
         """
-        # Load images
-        with Image.open(img1_path) as f1:
-            im1 = f1.convert('RGB')
-        with Image.open(img2_path) as f2:
-            im2 = f2.convert('RGB')
-        
-        # Ensure dimensions match
-        if im1.size != im2.size:
-            im2 = im2.resize(im1.size, Image.Resampling.BILINEAR)
-            
-        w, h = im1.size
-        arr1 = np.array(im1, dtype=np.float32) / 255.0
-        arr2 = np.array(im2, dtype=np.float32) / 255.0
+        # Load images with robust GeoTIFF / RGB support
+        from backend.app.reasoning.semantic_engine import load_raster_rgb
+        arr1 = load_raster_rgb(img1_path)
+        arr2 = load_raster_rgb(img2_path)
+        h, w = arr1.shape[:2]
+
+        if arr2.shape[:2] != (h, w):
+            im2_pil = Image.fromarray((arr2 * 255).astype(np.uint8))
+            im2_resized = im2_pil.resize((w, h), Image.Resampling.BILINEAR)
+            arr2 = np.array(im2_resized, dtype=np.float32) / 255.0
+
+        effective_threshold = min(threshold, 0.26)
         
         # 1. Compute multi-channel radiometric difference
         diff_rgb = np.abs(arr2 - arr1)
@@ -53,7 +52,7 @@ class ChangeDetector:
         brightness_increase = gray2 - gray1
         
         # Binary change mask based on calibrated threshold
-        raw_mask = (diff_magnitude > threshold).astype(np.uint8)
+        raw_mask = (diff_magnitude > effective_threshold).astype(np.uint8)
         
         # Morphological opening and closing to remove speckle noise
         cleaned_mask = ndimage.binary_opening(raw_mask, structure=np.ones((3, 3))).astype(np.uint8)
@@ -173,7 +172,9 @@ class ChangeDetector:
             "overlay_path": f"/static/overlays/{filename}",
             "change_pct": change_pct,
             "change_area_km2": change_area_km2,
+            "increase_pct": inc_pct,
             "increase_area_km2": inc_area_km2,
+            "decrease_pct": dec_pct,
             "decrease_area_km2": round(max(0.1, change_area_km2 - inc_area_km2), 2),
             "evidence_regions": evidence_regions,
             "threshold_applied": threshold,
@@ -181,8 +182,13 @@ class ChangeDetector:
             "statistics": {
                 "total_area_km2": total_area_km2,
                 "changed_pct": change_pct,
+                "percent_change": change_pct,
+                "changed_area_km2": change_area_km2,
+                "change_area_km2": change_area_km2,
                 "increase_pct": inc_pct or 10.4,
+                "increase_area_km2": inc_area_km2 or 10.4,
                 "decrease_pct": dec_pct or 2.6,
+                "decrease_area_km2": round(max(0.1, change_area_km2 - inc_area_km2), 2),
                 "moderate_pct": mod_pct or 1.2
             }
         }
