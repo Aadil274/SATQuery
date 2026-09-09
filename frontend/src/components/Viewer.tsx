@@ -12,7 +12,7 @@ import {
   Crosshair,
   Layers
 } from 'lucide-react';
-import { ImageSlot, AnalysisResponseData, EvidenceRegionData } from '../lib/api';
+import { ImageSlot, AnalysisResponseData, EvidenceRegionData, resolveAssetUrl } from '../lib/api';
 import { REGION_COLORS } from '../lib/demoData';
 
 interface ViewerProps {
@@ -389,7 +389,7 @@ export const Viewer: React.FC<ViewerProps> = ({ slots, analysis, running }) => {
                   {/* High-fidelity raster heatmap overlay if present */}
                   {heatmap?.overlay_url ? (
                     <img
-                      src={heatmap.overlay_url}
+                      src={resolveAssetUrl(heatmap.overlay_url)}
                       alt={heatmap.title || "Heatmap Overlay"}
                       draggable={false}
                       className="absolute inset-0 w-full h-full object-fill select-none"

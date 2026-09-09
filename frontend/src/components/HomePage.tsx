@@ -1,8 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
   Satellite,
-  Radio,
-  ArrowRight,
   Layers,
   Crosshair,
   GitCompareArrows,
@@ -10,8 +8,8 @@ import {
   Waves,
   Sparkles,
   ShieldCheck,
-  Activity,
-  ChevronRight
+  ChevronRight,
+  ArrowRight
 } from 'lucide-react';
 import { PRESETS, Preset } from '../lib/demoData';
 
@@ -42,7 +40,7 @@ interface Meteor {
 
 export const HomePage: React.FC<HomePageProps> = ({ onOpenConsole, onLaunchPreset }) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const [utcTime, setUtcTime] = useState('');
+  const [utcTime, setUtcTime] = useState(() => new Date().toISOString().replace('T', ' ').slice(0, 19) + ' UTC');
   const [mouseOffset, setMouseOffset] = useState({ x: 0, y: 0 });
 
   // Clock ticker
@@ -235,30 +233,11 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenConsole, onLaunchPrese
           </div>
         </div>
 
-        {/* Orbit Telemetry Widget */}
-        <div className="hidden md:flex items-center gap-6 telemetry text-[11px]">
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-full border border-cyan-500/25 bg-[#121824]/80 text-cyan-300">
-            <Radio className="w-3.5 h-3.5 text-[#FF7300] sq-pulse" />
-            <span>ORBIT: LEO 786 KM · 98.6° SSO</span>
-          </div>
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-full border border-emerald-500/30 bg-emerald-950/30 text-emerald-400">
-            <Activity className="w-3.5 h-3.5" />
-            <span>PAYLOAD: S2 OPTICAL + S1 SAR</span>
-          </div>
-          <div className="text-slate-400 font-mono-x">
-            {utcTime || 'LIVE TELEMETRY'}
-          </div>
+        {/* Date and Time */}
+        <div className="telemetry text-xs sm:text-sm text-cyan-300 font-mono-x px-3.5 py-1.5 rounded-lg border border-cyan-500/25 bg-[#0B0E14]/80 flex items-center gap-2 sq-glass shadow-lg">
+          <span className="w-2 h-2 rounded-full bg-[#00F0FF] sq-pulse" />
+          <span>{utcTime}</span>
         </div>
-
-        {/* Quick Header CTA */}
-        <button
-          data-testid="header-open-console-btn"
-          onClick={onOpenConsole}
-          className="sq-btn flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-r from-cyan-600/30 to-orange-600/30 border border-cyan-400/50 hover:border-cyan-300 text-cyan-200 hover:text-white font-mono-x text-xs tracking-wider uppercase sq-glow transition-all cursor-pointer"
-        >
-          <span>ENTER CONSOLE</span>
-          <ArrowRight className="w-3.5 h-3.5 text-[#00F0FF]" />
-        </button>
       </header>
 
       {/* 5. HERO STAGE */}

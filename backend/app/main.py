@@ -1,4 +1,11 @@
+import sys
 import os
+
+# Ensure project root is in sys.path for reliable imports across hosting platforms
+ROOT_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+if ROOT_DIR not in sys.path:
+    sys.path.insert(0, ROOT_DIR)
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
@@ -25,13 +32,14 @@ app.add_middleware(
 )
 
 # Mount static directories for imagery, overlays, and generated PDF reports
-os.makedirs("static/samples", exist_ok=True)
-os.makedirs("static/overlays", exist_ok=True)
-os.makedirs("static/reports", exist_ok=True)
-os.makedirs("static/uploads", exist_ok=True)
-os.makedirs("static/datasets", exist_ok=True)
+STATIC_DIR = os.path.join(ROOT_DIR, "static")
+os.makedirs(os.path.join(STATIC_DIR, "samples"), exist_ok=True)
+os.makedirs(os.path.join(STATIC_DIR, "overlays"), exist_ok=True)
+os.makedirs(os.path.join(STATIC_DIR, "reports"), exist_ok=True)
+os.makedirs(os.path.join(STATIC_DIR, "uploads"), exist_ok=True)
+os.makedirs(os.path.join(STATIC_DIR, "datasets"), exist_ok=True)
 
-app.mount("/static", StaticFiles(directory="static"), name="static")
+app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
 # Include API Routers
 app.include_router(agent_router, prefix="/api", tags=["Agentic Analysis"])

@@ -1,5 +1,17 @@
 // API client for SatQuery AI backend
-const API_BASE = '/api';
+const ENV_API_URL = typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_API_URL 
+  ? String(import.meta.env.VITE_API_URL).replace(/\/+$/, '') 
+  : '';
+
+export const API_BASE = ENV_API_URL ? `${ENV_API_URL}/api` : '/api';
+
+export function resolveAssetUrl(path?: string): string {
+  if (!path) return '';
+  if (path.startsWith('http://') || path.startsWith('https://') || path.startsWith('data:')) return path;
+  if (!ENV_API_URL) return path;
+  const cleanPath = path.startsWith('/') ? path : `/${path}`;
+  return `${ENV_API_URL}${cleanPath}`;
+}
 
 export function dimsFromUrl(url: string): Promise<{ width: number; height: number }> {
   return new Promise((resolve) => {

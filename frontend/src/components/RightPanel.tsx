@@ -10,7 +10,7 @@ import {
   FileText,
   Code
 } from 'lucide-react';
-import { ImageSlot, AnalysisResponseData } from '../lib/api';
+import { ImageSlot, AnalysisResponseData, resolveAssetUrl } from '../lib/api';
 import { SUGGESTED } from '../lib/demoData';
 import { downloadReport } from '../lib/report';
 
@@ -321,7 +321,7 @@ export const RightPanel: React.FC<RightPanelProps> = ({
 
               <div className="grid grid-cols-2 gap-2 text-[11px] font-mono-x">
                 <a
-                  href={analysis.report_pdf_url || `/api/report/pdf/${analysis.id || analysis.trace_id}`}
+                  href={resolveAssetUrl(analysis.report_pdf_url || `/api/report/pdf/${analysis.id || analysis.trace_id}`)}
                   target="_blank"
                   rel="noreferrer"
                   className="sq-btn flex items-center justify-center gap-1.5 py-1.5 rounded bg-[#182232] border border-cyan-500/20 hover:border-cyan-400 text-slate-300 hover:text-cyan-300 text-center"
@@ -330,13 +330,13 @@ export const RightPanel: React.FC<RightPanelProps> = ({
                   <span>EXPORT PDF</span>
                 </a>
                 <a
-                  href={analysis.report_json_url || `/api/report/json/${analysis.id || analysis.trace_id}`}
+                  href={resolveAssetUrl(analysis.report_json_url || `/api/report/json/${analysis.id || analysis.trace_id}`)}
                   target="_blank"
                   rel="noreferrer"
                   className="sq-btn flex items-center justify-center gap-1.5 py-1.5 rounded bg-[#182232] border border-cyan-500/20 hover:border-cyan-400 text-slate-300 hover:text-cyan-300 text-center"
                 >
-                  <Code className="w-3 h-3 text-amber-400" />
-                  <span>GEOJSON / AUDIT</span>
+                  <Code className="w-3 h-3 text-cyan-400" />
+                  <span>EXPORT JSON</span>
                 </a>
               </div>
             </div>
