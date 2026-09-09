@@ -1,4 +1,4 @@
-﻿# Stage 1: Build the React / Vite Frontend
+# Stage 1: Build the React / Vite Frontend
 FROM node:20-alpine AS frontend-builder
 WORKDIR /app/frontend
 
@@ -19,11 +19,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy backend, datasets, training, and static assets
+# Copy backend, datasets, training, static assets, and root runner
 COPY backend/ ./backend/
 COPY datasets/ ./datasets/
 COPY training/ ./training/
 COPY static/ ./static/
+COPY run.py .
 
 # Copy built frontend dist into frontend/dist for FastAPI SPA serving
 COPY --from=frontend-builder /app/frontend/dist ./frontend/dist
@@ -31,4 +32,4 @@ COPY --from=frontend-builder /app/frontend/dist ./frontend/dist
 ENV PORT=8000
 EXPOSE 8000
 
-CMD ["sh", "-c", "uvicorn backend.app.main:app --host 0.0.0.0 --port "]
+CMD ["python", "run.py"]
