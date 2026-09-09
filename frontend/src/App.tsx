@@ -6,6 +6,7 @@ import { RightPanel } from './components/RightPanel';
 import { BottomDock } from './components/BottomDock';
 import { HistoryDrawer, HistoryItem } from './components/HistoryDrawer';
 import { CompareModal } from './components/CompareModal';
+import { HomePage } from './components/HomePage';
 import {
   ImageSlot,
   AnalysisResponseData,
@@ -25,11 +26,37 @@ interface Toast {
 }
 
 export function App() {
+  const [currentView, setCurrentView] = useState<'home' | 'console'>(() => {
+    if (typeof window !== 'undefined' && window.location.hash === '#console') {
+      return 'console';
+    }
+    return 'home';
+  });
   const [slots, setSlots] = useState<ImageSlot[]>([]);
   const [analysis, setAnalysis] = useState<AnalysisResponseData | null>(null);
   const [running, setRunning] = useState(false);
   const [status, setStatus] = useState<'idle' | 'running' | 'done'>('idle');
   const [modelInfo, setModelInfo] = useState<any>(null);
+
+  // Sync hash changes
+  useEffect(() => {
+    const handleHash = () => {
+      if (window.location.hash === '#console') setCurrentView('console');
+      else if (window.location.hash === '#home') setCurrentView('home');
+    };
+    window.addEventListener('hashchange', handleHash);
+    return () => window.removeEventListener('hashchange', handleHash);
+  }, []);
+
+  const openConsole = () => {
+    setCurrentView('console');
+    window.location.hash = '#console';
+  };
+
+  const openHome = () => {
+    setCurrentView('home');
+    window.location.hash = '#home';
+  };
 
   // History & Comparison state
   const [history, setHistory] = useState<HistoryItem[]>([]);
@@ -80,6 +107,11 @@ export function App() {
     } catch {
       addToast('Failed to load preset imagery', 'error');
     }
+  };
+
+  const handleLaunchPreset = async (p: Preset) => {
+    await loadPreset(p, true);
+    openConsole();
   };
 
   // On mount: fetch model registry
@@ -243,6 +275,35 @@ export function App() {
     .map((id) => history.find((h) => h.id === id))
     .filter(Boolean) as HistoryItem[];
 
+  if (currentView === 'home') {
+    return (
+      <div className="h-screen w-screen overflow-y-auto bg-[#07090E] text-slate-100 antialiased font-sans">
+        <HomePage
+          onOpenConsole={openConsole}
+          onLaunchPreset={handleLaunchPreset}
+        />
+        {/* Floating Toast Notifications */}
+        <div className="fixed bottom-4 right-4 z-50 flex flex-col gap-2 pointer-events-none">
+          {toasts.map((t) => (
+            <div
+              key={t.id}
+              className={`pointer-events-auto sq-glass rounded-lg px-4 py-2.5 text-xs font-mono-x border shadow-2xl flex items-center gap-2 sq-fade-up ${
+                t.type === 'success'
+                  ? 'border-emerald-500/50 text-emerald-300 bg-emerald-950/80'
+                  : t.type === 'error'
+                  ? 'border-rose-500/50 text-rose-300 bg-rose-950/80'
+                  : 'border-cyan-500/40 text-cyan-300 bg-cyan-950/80'
+              }`}
+            >
+              <span>{t.type === 'success' ? '✓' : t.type === 'error' ? '✕' : 'ℹ'}</span>
+              <span>{t.message}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="h-screen w-screen flex flex-col overflow-hidden bg-[#0B0E14] text-slate-100 antialiased select-none font-sans">
       {/* 1. Header Cockpit */}
@@ -250,6 +311,7 @@ export function App() {
         status={status}
         historyCount={history.length}
         onOpenHistory={() => setHistoryOpen(true)}
+        onOpenHome={openHome}
       />
 
       {/* 2. Main 3-Column Working Area */}

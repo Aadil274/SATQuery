@@ -13,7 +13,8 @@ import {
   CheckCircle2,
   FileImage
 } from 'lucide-react';
-import { PRESETS, Preset, ImageSlot } from '../lib/demoData';
+import { PRESETS, Preset } from '../lib/demoData';
+import { ImageSlot } from '../lib/api';
 
 interface LeftPanelProps {
   slots: ImageSlot[];

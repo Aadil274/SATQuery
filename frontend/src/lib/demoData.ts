@@ -159,6 +159,7 @@ export const REGION_COLORS: Record<string, { stroke: string; fill: string }> = {
 };
 
 import { ImageSlot, AnalysisResponseData, EvidenceRegionData, HeatmapData } from './api';
+export type { ImageSlot };
 
 export function generateLocalAnalysis(query: string, slots: ImageSlot[]): AnalysisResponseData {
   const q = query.toLowerCase();

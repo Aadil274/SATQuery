@@ -126,6 +126,13 @@ async def download_pdf_report(trace_id: str):
     pdf_filename = f"report_{trace_id}.pdf"
     pdf_path = os.path.join("static/reports", pdf_filename)
     
+    if os.path.exists(pdf_path):
+        return FileResponse(
+            pdf_path,
+            media_type="application/pdf",
+            filename=f"SatQuery_Mission_Report_{trace_id}.pdf"
+        )
+    
     resp = last_response_cache.get(trace_id)
     if not resp:
         raise HTTPException(status_code=404, detail=f"Analysis trace '{trace_id}' not found. Please run an analysis first.")
@@ -143,6 +150,13 @@ async def download_json_report(trace_id: str):
     os.makedirs("static/reports", exist_ok=True)
     json_filename = f"report_{trace_id}.json"
     json_path = os.path.join("static/reports", json_filename)
+    
+    if os.path.exists(json_path):
+        return FileResponse(
+            json_path,
+            media_type="application/json",
+            filename=f"SatQuery_Audit_Trace_{trace_id}.json"
+        )
     
     resp = last_response_cache.get(trace_id)
     if not resp:

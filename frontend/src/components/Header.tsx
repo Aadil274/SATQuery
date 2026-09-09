@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { Satellite, History, Radio, Activity, ALargeSmall } from 'lucide-react';
+import { Satellite, History, Radio, Activity, ALargeSmall, Home } from 'lucide-react';
 
 interface HeaderProps {
   status: string;
   historyCount?: number;
   onOpenHistory: () => void;
+  onOpenHome?: () => void;
 }
 
-export const Header: React.FC<HeaderProps> = ({ status, historyCount = 0, onOpenHistory }) => {
+export const Header: React.FC<HeaderProps> = ({ status, historyCount = 0, onOpenHistory, onOpenHome }) => {
   const [utc, setUtc] = useState('');
   const [fontSize, setFontSize] = useState<'100' | '125' | '150' | '175'>(() => {
     const saved = localStorage.getItem('sq_font_size');
@@ -49,20 +50,39 @@ export const Header: React.FC<HeaderProps> = ({ status, historyCount = 0, onOpen
       data-testid="app-header"
       className="sq-glass flex items-center justify-between px-5 h-14 border-b border-cyan-500/20 relative z-30 select-none"
     >
-      {/* Left: Brand & Icon */}
+      {/* Left: Brand & Home Navigation */}
       <div className="flex items-center gap-3">
-        <div className="relative">
-          <Satellite className="w-6 h-6 text-[#FF7300]" strokeWidth={1.8} />
-          <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-[#00E676] sq-pulse" />
-        </div>
-        <div>
-          <h1 className="font-head text-xl font-bold tracking-wide leading-none">
-            SAT<span className="text-[#FF7300]">QUERY</span> <span className="text-[#00F0FF]">AI</span>
-          </h1>
-          <div className="telemetry leading-none mt-0.5">
-            Agentic Earth-Observation Console
+        <button
+          data-testid="header-home-brand-btn"
+          onClick={onOpenHome}
+          title="Return to Home & Galaxy Overview"
+          className="flex items-center gap-3 hover:opacity-90 transition-all cursor-pointer text-left group"
+        >
+          <div className="relative">
+            <Satellite className="w-6 h-6 text-[#FF7300] group-hover:rotate-6 transition-transform" strokeWidth={1.8} />
+            <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-[#00E676] sq-pulse" />
           </div>
-        </div>
+          <div>
+            <h1 className="font-head text-xl font-bold tracking-wide leading-none group-hover:text-[#00F0FF] transition-colors">
+              SAT<span className="text-[#FF7300]">QUERY</span> <span className="text-[#00F0FF]">AI</span>
+            </h1>
+            <div className="telemetry leading-none mt-0.5">
+              Agentic Earth-Observation Console
+            </div>
+          </div>
+        </button>
+
+        {onOpenHome && (
+          <button
+            data-testid="nav-home-btn"
+            onClick={onOpenHome}
+            title="Return to Mission Home & Galaxy Overview"
+            className="sq-btn hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-cyan-500/30 hover:border-cyan-400 bg-cyan-500/5 hover:bg-cyan-500/15 text-cyan-300 text-xs font-mono-x transition-all ml-1 cursor-pointer"
+          >
+            <Home className="w-3.5 h-3.5 text-[#00F0FF]" />
+            <span>HOME</span>
+          </button>
+        )}
       </div>
 
       {/* Center: Live UTC Clock */}
