@@ -9,21 +9,21 @@ class ModalityType(str, Enum):
     UNKNOWN = "Unknown"
 
 class GeoMetadata(BaseModel):
-    crs: str = Field("EPSG:4326", description="Coordinate Reference System")
-    bounds: List[float] = Field(default_factory=lambda: [72.80, 19.00, 72.95, 19.15], description="[minx, miny, maxx, maxy]")
+    crs: str = Field("Unknown", description="Coordinate Reference System")
+    bounds: List[float] = Field(default_factory=lambda: [], description="[minx, miny, maxx, maxy]")
     width: int = Field(512, description="Raster width in pixels")
     height: int = Field(512, description="Raster height in pixels")
-    resolution_m: float = Field(10.0, description="Spatial pixel resolution in meters")
-    band_count: int = Field(4, description="Number of raster bands")
-    band_names: List[str] = Field(default_factory=lambda: ["B02_Blue", "B03_Green", "B04_Red", "B08_NIR"])
-    data_type: str = Field("uint16", description="Raster data type (uint8, uint16, float32)")
+    resolution_m: float = Field(0.0, description="Spatial pixel resolution in meters")
+    band_count: int = Field(0, description="Number of raster bands")
+    band_names: List[str] = Field(default_factory=lambda: [])
+    data_type: str = Field("unknown", description="Raster data type (uint8, uint16, float32)")
     nodata: Optional[float] = Field(None, description="NoData pixel value")
-    center_lat: float = Field(19.0760, description="Center latitude in degrees")
-    center_lon: float = Field(72.8777, description="Center longitude in degrees")
-    acquisition_date: str = Field("2024-06-20", description="Acquisition date (YYYY-MM-DD)")
-    sensor: str = Field("Sentinel-2 L2A", description="Sensor platform name")
+    center_lat: float = Field(0.0, description="Center latitude in degrees")
+    center_lon: float = Field(0.0, description="Center longitude in degrees")
+    acquisition_date: str = Field("Unknown", description="Acquisition date (YYYY-MM-DD)")
+    sensor: str = Field("Unknown", description="Sensor platform name")
     cloud_cover_pct: Optional[float] = Field(0.0, description="Estimated cloud cover percentage")
-    area_sq_km: float = Field(100.0, description="Ground area footprint in square kilometers")
+    area_sq_km: float = Field(0.0, description="Ground area footprint in square kilometers")
 
 class ValidationResult(BaseModel):
     is_valid: bool = True
@@ -34,10 +34,10 @@ class ValidationResult(BaseModel):
     error: Optional[str] = None
 
 class CoRegistrationResult(BaseModel):
-    is_compatible: bool = True
-    crs_match: bool = True
-    spatial_overlap_pct: float = 100.0
-    resolution_match: bool = True
-    temporal_difference_days: int = 887
-    temporal_order_valid: bool = True
-    message: str = "Images are accurately co-registered with compatible CRS (EPSG:4326) and 10m spatial resolution."
+    is_compatible: bool = False
+    crs_match: bool = False
+    spatial_overlap_pct: float = 0.0
+    resolution_match: bool = False
+    temporal_difference_days: int = 0
+    temporal_order_valid: bool = False
+    message: str = "Co-registration not yet validated."

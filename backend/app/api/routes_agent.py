@@ -77,7 +77,12 @@ async def analyze_imagery(request: AnalysisRequest):
                 import base64
                 import time
                 os.makedirs("static/uploads", exist_ok=True)
-                save_path = f"static/uploads/upload_{int(time.time())}_{i}.jpg"
+                # Detect file extension from name or default to .jpg
+                orig_name = img.get("name", "upload.jpg")
+                ext = os.path.splitext(orig_name)[1].lower() if orig_name else ".jpg"
+                if ext not in [".tif", ".tiff", ".png", ".jpg", ".jpeg"]:
+                    ext = ".jpg"
+                save_path = f"static/uploads/upload_{int(time.time())}_{i}{ext}"
                 with open(save_path, "wb") as f:
                     f.write(base64.b64decode(img["base64"]))
                 image_paths.append(save_path)
@@ -122,18 +127,9 @@ async def download_pdf_report(trace_id: str):
     pdf_path = os.path.join("static/reports", pdf_filename)
     
     resp = last_response_cache.get(trace_id)
-    report_dict = resp.model_dump() if resp else {
-        "query": "What changed between these two dates, and where did the change occur?",
-        "task_type": "Bi-temporal Change Analysis",
-        "confidence_score": 92,
-        "headline_answer": "Built-up area increased in the eastern section, mainly around the new road corridor.",
-        "bullet_points": [
-            "Significant increase in built-up structures (red) near the main road.",
-            "New construction observed along the eastern cluster.",
-            "No significant change in vegetation along the river.",
-            "Some reduction in bare land in the southern region."
-        ]
-    }
+    if not resp:
+        raise HTTPException(status_code=404, detail=f"Analysis trace '{trace_id}' not found. Please run an analysis first.")
+    report_dict = resp.model_dump()
     
     MissionReportGenerator.generate_pdf(report_dict, pdf_path)
     return FileResponse(
@@ -149,11 +145,9 @@ async def download_json_report(trace_id: str):
     json_path = os.path.join("static/reports", json_filename)
     
     resp = last_response_cache.get(trace_id)
-    report_dict = resp.model_dump() if resp else {
-        "query": "What changed between these two dates?",
-        "task_type": "Bi-temporal Change Analysis",
-        "confidence_score": 92
-    }
+    if not resp:
+        raise HTTPException(status_code=404, detail=f"Analysis trace '{trace_id}' not found. Please run an analysis first.")
+    report_dict = resp.model_dump()
     
     JsonReportGenerator.generate_json(report_dict, json_path)
     return FileResponse(

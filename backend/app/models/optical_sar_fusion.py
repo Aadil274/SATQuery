@@ -62,53 +62,71 @@ class OpticalSARFusionModel:
         
         raw_cloud = round((np.sum(cloud_mask) / (w * h)) * 100.0, 1)
         raw_urban = round((np.sum(high_backscatter) / (w * h)) * 100.0, 1)
-        cloud_pct = max(15.2, raw_cloud)
-        urban_sar_pct = max(14.8, raw_urban)
+        cloud_pct = raw_cloud
+        urban_sar_pct = raw_urban
         
         headline = "Joint Optical + SAR fusion successfully disambiguated surface features and penetrated optical cloud haze."
         bullet_points = [
-            f"SAR Cloud Penetration: Successfully recovered surface topography beneath {cloud_pct}% cloud-covered areas.",
-            f"Structural Disambiguation: Sentinel-1 VV/VH confirmed {urban_sar_pct}% high-roughness built-up structures via double-bounce backscatter.",
-            "Specular Water Absorption: Calm water along the river course produced near-zero radar returns (< -22 dB), establishing indisputable water boundaries.",
-            "Cross-Modal Consistency: Zero radiometric conflict detected between radar roughness and multispectral indices."
+            f"SAR Cloud Penetration: Recovered surface topography beneath {cloud_pct}% cloud-covered areas using C-band microwave.",
+            f"Structural Detection: Sentinel-1 VV/VH identified {urban_sar_pct}% high-roughness built-up structures via backscatter analysis.",
+            f"Water Detection: Specular radar absorption detected smooth water surfaces covering {round((np.sum(specular_water) / (w * h)) * 100.0, 1)}% of the scene.",
+            "Cross-Modal Alignment: Optical and SAR imagery fused with sub-pixel co-registration."
         ]
         
-        evidence_regions = [
-            {
-                "id": "fusion_reg_1",
-                "label": "SAR-Recovered Built-up Cluster (Sub-Cloud)",
-                "bbox": [0.20, 0.65, 0.55, 0.90],
-                "area_km2": 6.8,
-                "category": "feature",
-                "color": "#38bdf8",
-                "confidence": 0.95
-            },
-            {
-                "id": "fusion_reg_2",
-                "label": "Specular Radar Dark Zone (Smooth Water Body)",
-                "bbox": [0.25, 0.35, 0.75, 0.55],
-                "area_km2": 4.2,
-                "category": "feature",
-                "color": "#0284c7",
-                "confidence": 0.96
-            },
-            {
-                "id": "fusion_reg_3",
-                "label": "High Chlorophyll Agricultural Sector",
-                "bbox": [0.60, 0.10, 0.90, 0.45],
-                "area_km2": 8.1,
-                "category": "feature",
-                "color": "#22c55e",
-                "confidence": 0.93
-            }
-        ]
+        evidence_regions = []
+        # Derive evidence from actual computed masks
+        if np.any(high_backscatter):
+            ys, xs = np.where(high_backscatter)
+            if len(ys) > 0:
+                ymin_n, ymax_n = float(ys.min()) / h, float(ys.max()) / h
+                xmin_n, xmax_n = float(xs.min()) / w, float(xs.max()) / w
+                evidence_regions.append({
+                    "id": "fusion_reg_1",
+                    "label": f"SAR High-Backscatter Zone ({urban_sar_pct}% coverage)",
+                    "bbox": [round(ymin_n, 4), round(xmin_n, 4), round(ymax_n, 4), round(xmax_n, 4)],
+                    "area_km2": round(urban_sar_pct, 2),
+                    "category": "feature",
+                    "color": "#38bdf8",
+                    "confidence": round(min(0.98, 0.7 + urban_sar_pct / 100.0), 2)
+                })
+        if np.any(specular_water):
+            ys, xs = np.where(specular_water)
+            if len(ys) > 0:
+                water_pct = round((np.sum(specular_water) / (w * h)) * 100.0, 1)
+                ymin_n, ymax_n = float(ys.min()) / h, float(ys.max()) / h
+                xmin_n, xmax_n = float(xs.min()) / w, float(xs.max()) / w
+                evidence_regions.append({
+                    "id": "fusion_reg_2",
+                    "label": f"Specular Radar Dark Zone ({water_pct}% coverage)",
+                    "bbox": [round(ymin_n, 4), round(xmin_n, 4), round(ymax_n, 4), round(xmax_n, 4)],
+                    "area_km2": round(water_pct, 2),
+                    "category": "feature",
+                    "color": "#0284c7",
+                    "confidence": round(min(0.98, 0.7 + water_pct / 100.0), 2)
+                })
+        veg_mask = greenness > 0.08
+        if np.any(veg_mask):
+            ys, xs = np.where(veg_mask)
+            if len(ys) > 0:
+                veg_pct = round((np.sum(veg_mask) / (w * h)) * 100.0, 1)
+                ymin_n, ymax_n = float(ys.min()) / h, float(ys.max()) / h
+                xmin_n, xmax_n = float(xs.min()) / w, float(xs.max()) / w
+                evidence_regions.append({
+                    "id": "fusion_reg_3",
+                    "label": f"Vegetation Sector ({veg_pct}% coverage)",
+                    "bbox": [round(ymin_n, 4), round(xmin_n, 4), round(ymax_n, 4), round(xmax_n, 4)],
+                    "area_km2": round(veg_pct, 2),
+                    "category": "feature",
+                    "color": "#22c55e",
+                    "confidence": round(min(0.98, 0.7 + veg_pct / 100.0), 2)
+                })
         
         return {
             "overlay_path": f"/static/overlays/{filename}",
             "evidence_regions": evidence_regions,
             "headline_answer": headline,
             "bullet_points": bullet_points,
-            "confidence": 0.95,
+            "confidence": round(min(0.98, 0.7 + (urban_sar_pct + cloud_pct) / 200.0), 2),
             "fusion_metrics": {
                 "cloud_penetration_pct": cloud_pct,
                 "sar_structural_detection_pct": urban_sar_pct,

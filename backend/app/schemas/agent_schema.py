@@ -23,15 +23,15 @@ class WorkflowStep(BaseModel):
     details: Optional[str] = None
 
 class ExecutionSummary(BaseModel):
-    task: str = "Bi-temporal Change Analysis"
-    input_type: str = "2 Optical Images (Sentinel-2)"
-    models_used: List[str] = Field(default_factory=lambda: ["Change Detection Model", "Change VQA Model"])
-    parameters: Dict[str, Any] = Field(default_factory=lambda: {"threshold": 0.35, "min_change_area": "0.01 km²"})
-    confidence: str = "92%"
-    confidence_value: float = 0.92
-    time_taken: str = "18.42 seconds"
-    status: str = "Completed"
-    timestamp: str = "31 May 2025, 10:24 AM"
+    task: str = "Pending"
+    input_type: str = "Unknown"
+    models_used: List[str] = Field(default_factory=lambda: [])
+    parameters: Dict[str, Any] = Field(default_factory=lambda: {})
+    confidence: str = "0%"
+    confidence_value: float = 0.0
+    time_taken: str = "0.00 seconds"
+    status: str = "Pending"
+    timestamp: str = ""
 
 class EvidenceRegion(BaseModel):
     id: str
@@ -53,15 +53,15 @@ class ImageCardInfo(BaseModel):
     modality: str
 
 class InputInformation(BaseModel):
-    before_image: Optional[Dict[str, str]] = Field(default_factory=lambda: {"date": "2022-01-15", "sensor": "Sentinel-2 L2A"})
-    after_image: Optional[Dict[str, str]] = Field(default_factory=lambda: {"date": "2024-06-20", "sensor": "Sentinel-2 L2A"})
-    location: str = "Lat: 19.0760° N, Lon: 72.8777° E"
-    resolution: str = "10 m (EPSG: 4326)"
-    area: str = "10 km x 10 km (100 sq. km)"
+    before_image: Optional[Dict[str, str]] = None
+    after_image: Optional[Dict[str, str]] = None
+    location: str = "Unknown"
+    resolution: str = "Unknown"
+    area: str = "Unknown"
 
 class AnalysisRequest(BaseModel):
     query: str
-    sample_id: Optional[str] = "bi_temporal_mumbai"
+    sample_id: Optional[str] = None
     custom_images: Optional[List[str]] = None
     threshold: Optional[float] = 0.35
     min_area_km2: Optional[float] = 0.01
@@ -72,7 +72,7 @@ class AnalysisResponse(BaseModel):
     query: str
     task_type: str
     status: str = "Completed"
-    input_count: str = "2 Images"
+    input_count: str = "0 Images"
     headline_answer: str
     bullet_points: List[str]
     confidence_score: int

@@ -135,6 +135,23 @@ class MissionReportGenerator:
         
         # Geospatial Input Information Table
         story.append(Paragraph("<b>GEOSPATIAL & SENSOR SPECIFICATIONS</b>", section_heading))
+        input_info = report_data.get("input_information", {})
+        if isinstance(input_info, dict):
+            loc = input_info.get("location", "Unknown")
+            res = input_info.get("resolution", "Unknown")
+            area = input_info.get("area", "Unknown")
+            before = input_info.get("before_image", {})
+            after = input_info.get("after_image", {})
+        else:
+            loc = getattr(input_info, 'location', 'Unknown')
+            res = getattr(input_info, 'resolution', 'Unknown')
+            area = getattr(input_info, 'area', 'Unknown')
+            before = getattr(input_info, 'before_image', {}) or {}
+            after = getattr(input_info, 'after_image', {}) or {}
+        before_date = before.get("date", "N/A") if before else "N/A"
+        before_sensor = before.get("sensor", "N/A") if before else "N/A"
+        after_date = after.get("date", "N/A") if after else "N/A"
+        after_sensor = after.get("sensor", "N/A") if after else "N/A"
         geo_table_data = [
             [
                 Paragraph("<b>Parameter</b>", body_style),
@@ -144,27 +161,27 @@ class MissionReportGenerator:
             ],
             [
                 Paragraph("Sensor 1 (T1)", body_style),
-                Paragraph("Sentinel-2 MSI L2A", body_style),
+                Paragraph(before_sensor, body_style),
                 Paragraph("Observation Date (T1)", body_style),
-                Paragraph("2022-01-15", body_style)
+                Paragraph(before_date, body_style)
             ],
             [
                 Paragraph("Sensor 2 (T2)", body_style),
-                Paragraph("Sentinel-2 MSI L2A", body_style),
+                Paragraph(after_sensor, body_style),
                 Paragraph("Observation Date (T2)", body_style),
-                Paragraph("2024-06-20", body_style)
+                Paragraph(after_date, body_style)
             ],
             [
-                Paragraph("CRS / Projection", body_style),
-                Paragraph("EPSG:4326 (WGS 84)", body_style),
+                Paragraph("Location", body_style),
+                Paragraph(loc, body_style),
                 Paragraph("Spatial Resolution", body_style),
-                Paragraph("10.0 meters / pixel", body_style)
+                Paragraph(res, body_style)
             ],
             [
                 Paragraph("Scene Footprint", body_style),
-                Paragraph("10 km x 10 km (100 km²)", body_style),
-                Paragraph("Center Coordinates", body_style),
-                Paragraph("19.0760° N, 72.8777° E", body_style)
+                Paragraph(area, body_style),
+                Paragraph("Analysis Status", body_style),
+                Paragraph("Completed", body_style)
             ]
         ]
         t_geo = Table(geo_table_data, colWidths=[130, 140, 130, 140])
@@ -181,15 +198,21 @@ class MissionReportGenerator:
         
         # Agentic Execution DAG Trace
         story.append(Paragraph("<b>AUDITABLE AGENTIC EXECUTION WORKFLOW</b>", section_heading))
-        trace_steps = [
-            ["Step", "Phase", "Engine / Model", "Validation / Rationale"],
-            ["01", "Query Understanding", "Agentic Query Router", "Semantic classification to bi-temporal change task"],
-            ["02", "Input Validation", "Raster & Co-Registration Validator", "Verified CRS match, 100% overlap, 10m GSD"],
-            ["03", "Model Selection", "Dynamic Specialist Registry", "Bound RS-ChangeNet & CDVQA specialist tools"],
-            ["04", "Change Extraction", "RS-ChangeNet (Siamese)", "Morphological segmentation, change clusters isolated"],
-            ["05", "Evidence Integration", "Evidence Fusion Engine", "Calculated 92% confidence, 14.2% change area"],
-            ["06", "Response Generation", "Mission Report Generator", "Synthesized visual overlays & PDF/JSON telemetry"]
-        ]
+        trace_steps = [["Step", "Phase", "Engine / Model", "Validation / Rationale"]]
+        workflow_steps = report_data.get("workflow_steps", [])
+        if workflow_steps:
+            for i, step in enumerate(workflow_steps):
+                if isinstance(step, dict):
+                    title = step.get("title", f"Step {i+1}")
+                    desc = step.get("description", "")
+                    details = step.get("details", "")
+                else:
+                    title = getattr(step, 'title', f"Step {i+1}")
+                    desc = getattr(step, 'description', '')
+                    details = getattr(step, 'details', '')
+                trace_steps.append([f"{i+1:02d}", title, desc, details])
+        else:
+            trace_steps.append(["01", "Analysis", "Agentic Pipeline", "Task executed and completed"])
         t_trace = Table(trace_steps, colWidths=[30, 120, 150, 240])
         t_trace.setStyle(TableStyle([
             ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#1e293b')),
@@ -201,6 +224,40 @@ class MissionReportGenerator:
             ('BOTTOMPADDING', (0, 0), (-1, -1), 3),
         ]))
         story.append(t_trace)
+        
+        # Spatial Evidence Regions
+        evidence = report_data.get("evidence_regions", [])
+        if evidence:
+            story.append(Spacer(1, 10))
+            story.append(Paragraph("<b>SPATIAL EVIDENCE REGIONS</b>", section_heading))
+            ev_rows = [["ID", "Label", "Category", "Area (km²)", "Confidence"]]
+            for r in evidence:
+                if isinstance(r, dict):
+                    ev_rows.append([
+                        r.get("id", "-"),
+                        r.get("label", "-"),
+                        r.get("category", "-"),
+                        str(r.get("area_km2", "-")),
+                        f"{int(r.get('confidence', 0) * 100)}%"
+                    ])
+                else:
+                    ev_rows.append([
+                        getattr(r, 'id', '-'),
+                        getattr(r, 'label', '-'),
+                        getattr(r, 'category', '-'),
+                        str(getattr(r, 'area_km2', '-')),
+                        f"{int(getattr(r, 'confidence', 0) * 100)}%"
+                    ])
+            t_ev = Table(ev_rows, colWidths=[50, 200, 80, 70, 70])
+            t_ev.setStyle(TableStyle([
+                ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#1e293b')),
+                ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+                ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#cbd5e1')),
+                ('FONTSIZE', (0, 0), (-1, -1), 8),
+                ('TOPPADDING', (0, 0), (-1, -1), 3),
+                ('BOTTOMPADDING', (0, 0), (-1, -1), 3),
+            ]))
+            story.append(t_ev)
         
         # Build Document
         doc.build(story)

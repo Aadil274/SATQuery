@@ -149,9 +149,9 @@ class GeospatialReasoningEngine:
 
                 # Standard observation scene footprint: 100.0 km² (10km x 10km)
                 total_area_km2 = 100.0
-                safe_change_pct = max(1.5, change_pct if change_pct > 0 else 10.4)
-                safe_inc_pct = max(0.5, inc_pct if inc_pct > 0 else 10.1)
-                safe_dec_pct = max(0.2, dec_pct if dec_pct > 0 else 0.3)
+                safe_change_pct = change_pct
+                safe_inc_pct = inc_pct
+                safe_dec_pct = dec_pct
 
                 change_stats = {
                     "total_area_km2": total_area_km2,
@@ -170,10 +170,10 @@ class GeospatialReasoningEngine:
 
             return {
                 "dimensions": (w, h),
-                "veg_pct": max(10.0, veg_pct),
-                "water_pct": max(3.0, water_pct),
-                "builtup_pct": max(15.0, builtup_pct),
-                "bare_pct": max(5.0, bare_pct),
+                "veg_pct": veg_pct,
+                "water_pct": water_pct,
+                "builtup_pct": builtup_pct,
+                "bare_pct": bare_pct,
                 "change_stats": change_stats,
                 "arr1": arr1,
                 "arr2": arr2,
@@ -187,22 +187,72 @@ class GeospatialReasoningEngine:
     def _default_scene_properties(self) -> Dict[str, Any]:
         return {
             "dimensions": (512, 512),
-            "veg_pct": 38.5,
-            "water_pct": 14.8,
-            "builtup_pct": 28.2,
-            "bare_pct": 18.5,
+            "veg_pct": 0.0,
+            "water_pct": 0.0,
+            "builtup_pct": 0.0,
+            "bare_pct": 0.0,
             "change_stats": {
                 "total_area_km2": 100.0,
-                "changed_pct": 10.4,
-                "changed_area_km2": 10.4,
-                "change_pct": 10.4,
-                "change_area_km2": 10.4,
-                "increase_pct": 10.1,
-                "increase_area_km2": 10.1,
-                "decrease_pct": 0.3,
-                "decrease_area_km2": 0.3
+                "changed_pct": 0.0,
+                "changed_area_km2": 0.0,
+                "change_pct": 0.0,
+                "change_area_km2": 0.0,
+                "increase_pct": 0.0,
+                "increase_area_km2": 0.0,
+                "decrease_pct": 0.0,
+                "decrease_area_km2": 0.0
             }
         }
+
+    def _extract_hotspot_points(self, intensity_map: np.ndarray, heatmap_type: str = "change", max_points: int = 5) -> List[Dict[str, Any]]:
+        """
+        Extracts hotspot points from actual intensity map peaks using local maxima detection.
+        """
+        from scipy import ndimage
+        h, w = intensity_map.shape
+        if np.max(intensity_map) < 0.1:
+            return []
+
+        # Label names by heatmap type
+        label_templates = {
+            "change": ["Change Hotspot", "Change Zone", "Transition Area", "Modified Region", "Active Change"],
+            "flood": ["Inundation Zone", "Water Accumulation", "Flood Extent", "Submersion Area", "Drainage Overflow"],
+            "fusion": ["Backscatter Hotspot", "Radar Feature", "Cross-Modal Zone", "SAR Detection", "Fusion Feature"],
+            "density": ["High-Density Zone", "Built-up Cluster", "Structural Concentration", "Urban Node", "Dense Region"]
+        }
+        labels = label_templates.get(heatmap_type, label_templates["change"])
+
+        # Smooth and find local maxima
+        smoothed = ndimage.gaussian_filter(intensity_map, sigma=max(w, h) * 0.04)
+        threshold = max(0.2, np.percentile(smoothed, 85))
+        binary = smoothed > threshold
+        labeled, n_features = ndimage.label(binary)
+
+        points = []
+        for i in range(1, min(n_features + 1, max_points + 1)):
+            region_mask = labeled == i
+            region_intensities = smoothed[region_mask]
+            if len(region_intensities) == 0:
+                continue
+            peak_intensity = float(np.max(region_intensities))
+            ys, xs = np.where(region_mask)
+            cy = float(np.mean(ys)) / h
+            cx = float(np.mean(xs)) / w
+            # Estimate radius from region extent
+            radius = max(0.05, float(max(ys.max() - ys.min(), xs.max() - xs.min())) / max(w, h))
+            label_text = labels[min(i - 1, len(labels) - 1)]
+            points.append({
+                "x": round(cx, 3),
+                "y": round(cy, 3),
+                "intensity": round(peak_intensity, 2),
+                "radius": round(radius, 2),
+                "label": f"{label_text} #{i}"
+            })
+
+        # Sort by intensity descending
+        points.sort(key=lambda p: p["intensity"], reverse=True)
+        return points[:max_points]
+
 
     def generate_raster_heatmap(
         self,
@@ -248,12 +298,8 @@ class GeospatialReasoningEngine:
             overlay_rgba[mask, 2] = (30 * (1.0 - norm_val)).astype(np.uint8)
             overlay_rgba[mask, 3] = (195 * norm_val + 45).astype(np.uint8)
 
-            points = [
-                {"x": 0.72, "y": 0.45, "intensity": 0.94, "radius": 0.22, "label": "Eastern Settlement Expansion"},
-                {"x": 0.52, "y": 0.50, "intensity": 0.82, "radius": 0.14, "label": "Central Road Junction Built-up"},
-                {"x": 0.80, "y": 0.76, "intensity": 0.88, "radius": 0.18, "label": "Southeastern Corridor Growth"},
-                {"x": 0.35, "y": 0.78, "intensity": 0.65, "radius": 0.15, "label": "Southern Parcel Conversion"}
-            ]
+            # Derive hotspot points from actual intensity peaks
+            points = self._extract_hotspot_points(intensity_map, heatmap_type="change")
             title = "Bi-Temporal Change Intensity Heatmap"
             intensity_label = "Change Magnitude (T1 → T2)"
             palette = "thermal"
@@ -274,11 +320,7 @@ class GeospatialReasoningEngine:
             overlay_rgba[mask, 2] = 255
             overlay_rgba[mask, 3] = (195 * norm_val + 50).astype(np.uint8)
 
-            points = [
-                {"x": 0.42, "y": 0.52, "intensity": 0.95, "radius": 0.24, "label": "Active River Floodplain Inundation"},
-                {"x": 0.28, "y": 0.68, "intensity": 0.88, "radius": 0.18, "label": "Low-lying Farmland Submersion"},
-                {"x": 0.62, "y": 0.30, "intensity": 0.75, "radius": 0.14, "label": "Northern Drainage Overflow Basin"}
-            ]
+            points = self._extract_hotspot_points(intensity_map, heatmap_type="flood")
             title = "Flood Inundation & Submersion Heatmap"
             intensity_label = "Inundation Extent & Depth Severity"
             palette = "water"
@@ -300,11 +342,7 @@ class GeospatialReasoningEngine:
             overlay_rgba[mask, 2] = (255 * (1 - norm_val)).astype(np.uint8)
             overlay_rgba[mask, 3] = (195 * norm_val + 50).astype(np.uint8)
 
-            points = [
-                {"x": 0.68, "y": 0.35, "intensity": 0.96, "radius": 0.22, "label": "Sub-Cloud Built-up Double-Bounce Backscatter"},
-                {"x": 0.38, "y": 0.48, "intensity": 0.90, "radius": 0.20, "label": "Specular Radar Dark Hydrological Basin"},
-                {"x": 0.78, "y": 0.65, "intensity": 0.84, "radius": 0.16, "label": "Cross-Modal Structural Alignment Node"}
-            ]
+            points = self._extract_hotspot_points(intensity_map, heatmap_type="fusion")
             title = "Multimodal Radar-Optical Fusion Heatmap"
             intensity_label = "Microwave Backscatter & Feature Alignment"
             palette = "fusion"
@@ -324,10 +362,7 @@ class GeospatialReasoningEngine:
             overlay_rgba[mask, 2] = (255 * (1 - norm_val) + 40).astype(np.uint8)
             overlay_rgba[mask, 3] = (190 * norm_val + 45).astype(np.uint8)
 
-            points = [
-                {"x": 0.75, "y": 0.48, "intensity": 0.96, "radius": 0.26, "label": "High-Density Residential/Commercial Node"},
-                {"x": 0.45, "y": 0.48, "intensity": 0.80, "radius": 0.16, "label": "Central Commercial Hub"}
-            ]
+            points = self._extract_hotspot_points(intensity_map, heatmap_type="density")
             title = "Built-up Structure Density Heatmap"
             intensity_label = "Impervious Built-up Density"
             palette = "spectral"
@@ -422,7 +457,7 @@ class GeospatialReasoningEngine:
             inundated_km2 = round(100.0 * (inundated_farm_pct / 100.0), 2)
             headline = f"Flood inundation has submerged approximately {inundated_farm_pct}% ({inundated_km2} km²) of surrounding agricultural lands along the central-western drainage corridor."
             bullets = [
-                f"Primary Inundation Zone: Active river floodplains in the central-western sector exhibit water depths exceeding normal baseline by ~1.8m.",
+                f"Primary Inundation Zone: Active floodplains in the central-western sector exhibit significant water level elevation above normal baseline.",
                 f"Farmland Impact: Low-lying crop parcels ({inundated_farm_pct}% of total vegetative cover) show high specular absorption and near-complete submersion.",
                 "Transport Infrastructure: Peripheral elevated roadways remain above the flood line, but secondary unpaved rural access routes in the southwest are cut off.",
                 "Temporal Dynamics: Downstream oxbow basins show active water pooling with low sediment turbidity."
@@ -486,7 +521,7 @@ class GeospatialReasoningEngine:
                 bullets = [
                     f"Agricultural Encroachment: Approximately {veg_loss_km2} km² of previous crop and fallow acreage in the southeast underwent conversion.",
                     f"Riparian Corridor Preservation: Vegetation buffers within 50 meters of the central river channel showed high temporal stability (<1.2% change).",
-                    "Seasonal Reflectance Delta: Normalized Difference Vegetation Index (NDVI) dropped from 0.58 to 0.22 in converted zones.",
+                    f"Seasonal Reflectance Delta: Vegetation spectral indices show significant decline in converted zones.",
                     f"Net Spatial Transition: Total surface transition across the observation window registered at {changed_pct}%."
                 ]
                 confidence = 0.93
@@ -527,9 +562,9 @@ class GeospatialReasoningEngine:
         elif is_sar or task_type_str in ["cross_modal", "optical_sar"]:
             headline = "Joint Optical + SAR fusion successfully disambiguated surface features and penetrated optical cloud haze."
             bullets = [
-                "Microwave Penetration: Sentinel-1 C-Band (VV/VH) penetrated thin cloud cover, revealing 16.8 km² of obscured surface topography.",
-                "Corner Reflection Signatures: High radar backscatter (> -6 dB) clearly demarcated double-bounce reflections from dense built-up settlements.",
-                "Specular Water Absorption: Calm water along the river course produced near-zero radar returns (< -22 dB), establishing indisputable water boundaries.",
+                "Microwave Penetration: Sentinel-1 C-Band (VV/VH) penetrated thin cloud cover, revealing obscured surface topography.",
+                "Corner Reflection Signatures: High radar backscatter demarcated double-bounce reflections from dense built-up settlements.",
+                "Specular Water Absorption: Smooth water surfaces produced near-zero radar returns, establishing water boundaries.",
                 "Cross-Sensor Fusion: Zero spatial mismatch detected after sub-pixel co-registration between Sentinel-2 and Sentinel-1."
             ]
             confidence = 0.95
@@ -557,7 +592,7 @@ class GeospatialReasoningEngine:
         elif is_bridge_road or is_density or "settlement" in q_lower or "building" in q_lower:
             headline = f"Identified high-density residential and commercial infrastructure ({built_pct}% coverage) concentrated along the eastern transport corridor."
             bullets = [
-                "Eastern Settlement Corridor: High building compactness index (0.84) with uniform rectangular structural footprints.",
+                f"Eastern Settlement Corridor: High building compactness with uniform rectangular structural footprints in the {built_pct}% built-up coverage zone.",
                 "Transport Grid: Primary dual-lane asphalt roadway bisects the eastern residential quadrant with connecting access lanes.",
                 "Commercial Hub: Center-east junction exhibits large warehouse and multi-story commercial roof reflectance."
             ]

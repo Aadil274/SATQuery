@@ -39,7 +39,7 @@ class ChangeDetector:
             im2_resized = im2_pil.resize((w, h), Image.Resampling.BILINEAR)
             arr2 = np.array(im2_resized, dtype=np.float32) / 255.0
 
-        effective_threshold = min(threshold, 0.26)
+        effective_threshold = threshold
         
         # 1. Compute multi-channel radiometric difference
         diff_rgb = np.abs(arr2 - arr1)
@@ -133,40 +133,9 @@ class ChangeDetector:
                     })
                     cluster_id += 1
                     
-        # If no large clusters found in synthetic/sample image, provide primary reference zones
+        # If no significant change clusters were detected, report honestly
         if not evidence_regions:
-            evidence_regions = [
-                {
-                    "id": "reg_1",
-                    "label": "Eastern Settlement Corridor (Built-up Expansion)",
-                    "bbox": [0.25, 0.60, 0.75, 0.95],
-                    "area_km2": 9.4,
-                    "category": "increase",
-                    "color": "#ef4444",
-                    "confidence": 0.94
-                },
-                {
-                    "id": "reg_2",
-                    "label": "Central Road Intersection Cluster",
-                    "bbox": [0.40, 0.45, 0.60, 0.65],
-                    "area_km2": 3.1,
-                    "category": "increase",
-                    "color": "#ef4444",
-                    "confidence": 0.91
-                },
-                {
-                    "id": "reg_3",
-                    "label": "Southern Agricultural Parcel (Bare Soil Reduction)",
-                    "bbox": [0.72, 0.20, 0.90, 0.50],
-                    "area_km2": 1.7,
-                    "category": "decrease",
-                    "color": "#10b981",
-                    "confidence": 0.88
-                }
-            ]
-            change_pct = 14.2
-            change_area_km2 = 14.2
-            inc_area_km2 = 10.4
+            evidence_regions = []
 
         return {
             "overlay_path": f"/static/overlays/{filename}",
@@ -185,10 +154,10 @@ class ChangeDetector:
                 "percent_change": change_pct,
                 "changed_area_km2": change_area_km2,
                 "change_area_km2": change_area_km2,
-                "increase_pct": inc_pct or 10.4,
-                "increase_area_km2": inc_area_km2 or 10.4,
-                "decrease_pct": dec_pct or 2.6,
-                "decrease_area_km2": round(max(0.1, change_area_km2 - inc_area_km2), 2),
-                "moderate_pct": mod_pct or 1.2
+                "increase_pct": inc_pct,
+                "increase_area_km2": inc_area_km2,
+                "decrease_pct": dec_pct,
+                "decrease_area_km2": round(dec_pct, 2),
+                "moderate_pct": mod_pct
             }
         }

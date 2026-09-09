@@ -195,8 +195,10 @@ export function App() {
       }
       setStatus('done');
     } catch (e: any) {
-      console.warn('Backend unavailable, engaging local dynamic reasoning engine:', e);
+      console.warn('Backend unavailable, engaging local demo reasoning engine:', e);
       const localRes = generateLocalAnalysis(query, slots);
+      // Mark as offline/simulated
+      (localRes as any)._offline = true;
       setAnalysis(localRes);
       setHistory((h) => [
         {
@@ -209,8 +211,8 @@ export function App() {
         ...h
       ].slice(0, 25));
       addToast(
-        `${localRes.plan?.task_label || 'Analysis'} complete · ${localRes.confidence?.level || 'HIGH'} confidence`,
-        'success'
+        '⚠ OFFLINE MODE: Backend unavailable — showing simulated demo analysis (not real AI inference)',
+        'error'
       );
       setStatus('done');
     } finally {

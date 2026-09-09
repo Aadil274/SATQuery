@@ -34,19 +34,22 @@ class CoRegistrationValidator:
         # 3. Spatial Bounds Overlap (Intersection over Union / Overlap Area)
         # bounds = [minx, miny, maxx, maxy]
         b1, b2 = m1.bounds, m2.bounds
-        inter_minx = max(b1[0], b2[0])
-        inter_miny = max(b1[1], b2[1])
-        inter_maxx = min(b1[2], b2[2])
-        inter_maxy = min(b1[3], b2[3])
-        
-        overlap_pct = 100.0
-        if inter_maxx > inter_minx and inter_maxy > inter_miny:
-            inter_area = (inter_maxx - inter_minx) * (inter_maxy - inter_miny)
-            area1 = (b1[2] - b1[0]) * (b1[3] - b1[1])
-            area2 = (b2[2] - b2[0]) * (b2[3] - b2[1])
-            overlap_pct = round((inter_area / max(area1, area2)) * 100.0, 1)
-        else:
-            overlap_pct = 0.0
+        overlap_pct = 0.0
+        if len(b1) >= 4 and len(b2) >= 4:
+            inter_minx = max(b1[0], b2[0])
+            inter_miny = max(b1[1], b2[1])
+            inter_maxx = min(b1[2], b2[2])
+            inter_maxy = min(b1[3], b2[3])
+            
+            if inter_maxx > inter_minx and inter_maxy > inter_miny:
+                inter_area = (inter_maxx - inter_minx) * (inter_maxy - inter_miny)
+                area1 = (b1[2] - b1[0]) * (b1[3] - b1[1])
+                area2 = (b2[2] - b2[0]) * (b2[3] - b2[1])
+                overlap_pct = round((inter_area / max(area1, area2)) * 100.0, 1)
+        elif len(b1) == 0 and len(b2) == 0:
+            # Both images lack bounds — assume 100% overlap if dimensions match
+            if dim_match:
+                overlap_pct = 100.0
             
         # 4. Temporal Relationship Check
         try:
@@ -55,10 +58,10 @@ class CoRegistrationValidator:
             diff_days = abs((d2 - d1).days)
             order_valid = (d2 >= d1)
         except Exception:
-            diff_days = 887 # default Sentinel-2 bi-temporal span (2022-01-15 to 2024-06-20)
-            order_valid = True
+            diff_days = 0
+            order_valid = False
             
-        is_compatible = (overlap_pct >= 70.0 and res_match and dim_match)
+        is_compatible = (overlap_pct >= 70.0 and res_match and dim_match and crs_match)
         
         msg_parts = []
         if is_compatible:

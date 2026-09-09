@@ -140,10 +140,10 @@ async def get_full_registry():
             },
             "status": "Domain Adapted",
             "benchmarks": [
-                {"metric": "RSVQA (Acc)", "base": 58.3, "adapted": 79.6},
-                {"metric": "Caption (CIDEr)", "base": 41.2, "adapted": 68.9},
-                {"metric": "Grounding (acc@0.5)", "base": 33.7, "adapted": 61.4},
-                {"metric": "Change-VQA (Acc)", "base": 52.1, "adapted": 74.8}
+                {"metric": "RSVQA (Acc)", "base": 58.3, "adapted": 79.6, "delta": "+21.3%"},
+                {"metric": "Caption (CIDEr)", "base": 41.2, "adapted": 68.9, "delta": "+27.7%"},
+                {"metric": "Grounding (acc@0.5)", "base": 33.7, "adapted": 61.4, "delta": "+27.7%"},
+                {"metric": "Change-VQA (Acc)", "base": 52.1, "adapted": 74.8, "delta": "+22.7%"}
             ]
         },
         "models": MODEL_REGISTRY_METADATA

@@ -8,7 +8,7 @@ class JsonReportGenerator:
     """
     @staticmethod
     def generate_json(report_data: Dict[str, Any], output_path: str) -> str:
-        trace_id = report_data.get("execution_summary", {}).get("trace_id", "000")
+        trace_id = report_data.get("trace_id", report_data.get("execution_summary", {}).get("trace_id", "000"))
         payload = {
             "$schema": "https://satquery.ai/schema/v1/report.json",
             "report_id": f"SATQUERY-RPT-{trace_id}",
@@ -40,7 +40,15 @@ class JsonReportGenerator:
                 }
                 for r in report_data.get("evidence_regions", [])
             ],
-            "change_statistics": report_data.get("change_statistics")
+            "change_statistics": report_data.get("change_statistics"),
+            "heatmap": report_data.get("heatmap"),
+            "confidence_breakdown": report_data.get("confidence", {}),
+            "image_cards": [
+                {"title": getattr(c, 'title', c.get('title', '')) if isinstance(c, dict) else getattr(c, 'title', ''),
+                 "date": getattr(c, 'date', c.get('date', '')) if isinstance(c, dict) else getattr(c, 'date', ''),
+                 "modality": getattr(c, 'modality', c.get('modality', '')) if isinstance(c, dict) else getattr(c, 'modality', '')}
+                for c in report_data.get("image_cards", [])
+            ]
         }
         
         with open(output_path, "w", encoding="utf-8") as f:

@@ -54,11 +54,11 @@ class RasterValidator:
                 # Tag 33922: ModelTiepointTag
                 # Tag 34735: GeoKeyDirectoryTag
                 geotags = page.geotiff_tags
-                crs = "EPSG:4326"
-                res_m = 10.0
-                bounds = [72.80, 19.00, 72.95, 19.15]
-                center_lat = 19.0760
-                center_lon = 72.8777
+                crs = "Unknown"
+                res_m = 0.0
+                bounds = []
+                center_lat = 0.0
+                center_lon = 0.0
                 
                 if geotags:
                     if 'GTCitationGeoKey' in geotags:
@@ -103,9 +103,9 @@ class RasterValidator:
                     data_type=dtype_name,
                     center_lat=center_lat,
                     center_lon=center_lon,
-                    acquisition_date="2024-06-20",
+                    acquisition_date="Unknown",
                     sensor=sensor,
-                    cloud_cover_pct=1.2,
+                    cloud_cover_pct=0.0,
                     area_sq_km=round((width * res_m / 1000.0) * (height * res_m / 1000.0), 2)
                 )
 
@@ -134,18 +134,18 @@ class RasterValidator:
                 band_count = len(mode) if mode in ['RGB', 'RGBA', 'CMYK'] else 1
                 
                 metadata = GeoMetadata(
-                    crs="EPSG:4326 (Simulated/Benchmark)",
-                    bounds=[72.82, 19.02, 72.92, 19.12],
+                    crs="EPSG:4326 (Estimated)",
+                    bounds=[],
                     width=width,
                     height=height,
                     resolution_m=10.0,
                     band_count=band_count,
                     band_names=["Red", "Green", "Blue"] if band_count >= 3 else ["Gray"],
                     data_type="uint8",
-                    center_lat=19.0760,
-                    center_lon=72.8777,
-                    acquisition_date="2024-06-20",
-                    sensor="Benchmark Standard (Sentinel-2 Reference)",
+                    center_lat=0.0,
+                    center_lon=0.0,
+                    acquisition_date="Unknown",
+                    sensor="Standard RGB Image",
                     area_sq_km=round((width * 10.0 / 1000.0) * (height * 10.0 / 1000.0), 2)
                 )
 

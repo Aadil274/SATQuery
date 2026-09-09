@@ -40,7 +40,7 @@ class WorkflowPlanner:
                 title="2. Input Validation",
                 description="Checking images, modality, metadata & compatibility",
                 status=WorkflowStepStatus.COMPLETED,
-                details="Validated CRS (EPSG:4326), spatial overlap (100%), and 10m GSD resolution."
+                details="Checked CRS compatibility, spatial overlap, and resolution matching."
             ),
             WorkflowStep(
                 step_num=3,
@@ -54,14 +54,14 @@ class WorkflowPlanner:
                 title=exec_step_title,
                 description=exec_step_desc,
                 status=WorkflowStepStatus.COMPLETED,
-                details="Inference executed successfully across GPU-accelerated specialist modules."
+                details=f"Inference executed successfully using specialist tools: [{tool_desc}]."
             ),
             WorkflowStep(
                 step_num=5,
                 title="5. Evidence Integration",
                 description="Combining outputs, estimating confidence & generating answer",
                 status=WorkflowStepStatus.COMPLETED,
-                details="Fusing radiometric difference metrics, spatial masks, and semantic logits."
+                details="Combining spatial evidence, computing confidence scores, and synthesizing answer."
             ),
             WorkflowStep(
                 step_num=6,
