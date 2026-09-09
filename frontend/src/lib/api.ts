@@ -123,6 +123,13 @@ export interface AnalysisResponseData {
   trace_id?: string;
   report_pdf_url?: string;
   report_json_url?: string;
+  input_information?: {
+    location?: string;
+    resolution?: string;
+    area?: string;
+    before_image?: { date?: string; sensor?: string };
+    after_image?: { date?: string; sensor?: string };
+  };
   error?: string;
 }
 

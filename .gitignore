@@ -1,0 +1,33 @@
+﻿# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+build/
+dist/
+*.egg-info/
+.pytest_cache/
+
+# Node / Web
+node_modules/
+frontend/node_modules/
+frontend/dist/
+*.log
+
+# Application Ephemeral Data & Test Outputs
+scratch/
+static/overlays/*.png
+static/reports/*.pdf
+static/uploads/*
+!static/uploads/.gitkeep
+!static/samples/
+!static/demo_images/
+!static/datasets/
+
+# OS & Environment
+.env
+.env.local
+.DS_Store
+Thumbs.db

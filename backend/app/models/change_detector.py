@@ -41,101 +41,166 @@ class ChangeDetector:
 
         effective_threshold = threshold
         
+        from backend.app.reasoning.semantic_engine import (
+            classify_landcover_features,
+            compute_adaptive_threshold,
+            extract_macro_growth_districts,
+            apply_nms
+        )
+
+        lc1 = classify_landcover_features(arr1)
+        lc2 = classify_landcover_features(arr2)
+
         # 1. Compute multi-channel radiometric difference
         diff_rgb = np.abs(arr2 - arr1)
         diff_magnitude = np.sqrt(np.sum(diff_rgb ** 2, axis=2)) / np.sqrt(3.0)
-        
-        # 2. Simulate spectral feature index change (simulated NDVI & NDBI contrast)
-        # Built-up structures generally increase brightness and edge density
-        gray1 = np.mean(arr1, axis=2)
-        gray2 = np.mean(arr2, axis=2)
-        brightness_increase = gray2 - gray1
-        
-        # Binary change mask based on calibrated threshold
-        raw_mask = (diff_magnitude > effective_threshold).astype(np.uint8)
-        
-        # Morphological opening and closing to remove speckle noise
-        cleaned_mask = ndimage.binary_opening(raw_mask, structure=np.ones((3, 3))).astype(np.uint8)
-        cleaned_mask = ndimage.binary_closing(cleaned_mask, structure=np.ones((4, 4))).astype(np.uint8)
-        
-        # Categorize change types
-        # Red: Built-up increase (diff high, brightness increased, red/gray tint)
-        # Green: Reduction / Vegetation (diff high, brightness decreased)
-        # Yellow: Moderate transition
-        increase_mask = (cleaned_mask == 1) & (brightness_increase > 0.08)
-        decrease_mask = (cleaned_mask == 1) & (brightness_increase < -0.08)
-        moderate_mask = (cleaned_mask == 1) & (~increase_mask) & (~decrease_mask)
-        
-        # 3. Create high-contrast visual change overlay matching reference screenshot
+        max_diff = float(np.max(diff_magnitude)) if diff_magnitude.size > 0 else 0.0
+
+        if max_diff < 0.04:
+            cleaned_mask = np.zeros((h, w), dtype=np.uint8)
+            increase_mask = np.zeros((h, w), dtype=bool)
+            decrease_mask = np.zeros((h, w), dtype=bool)
+            moderate_mask = np.zeros((h, w), dtype=bool)
+            applied_threshold = threshold
+        else:
+            # Physical Land-Cover Transitions
+            urban_expansion = (lc1["veg_mask"] | lc1["bare_mask"]) & lc2["builtup_mask"] & (diff_magnitude > 0.06)
+            veg_loss = lc1["veg_mask"] & (~lc2["veg_mask"]) & (diff_magnitude > 0.06)
+
+            applied_threshold = compute_adaptive_threshold(diff_magnitude, min_thresh=0.14, max_thresh=0.35, fallback=threshold)
+            radiometric_mask = (diff_magnitude > applied_threshold).astype(np.uint8)
+            cleaned_mask = ((radiometric_mask == 1) | urban_expansion | veg_loss).astype(np.uint8)
+
+            exp_pct = float(np.mean(urban_expansion)) * 100.0
+            loss_pct = float(np.mean(veg_loss)) * 100.0
+
+            if exp_pct >= 2.0 or loss_pct >= 2.0:
+                increase_mask = urban_expansion
+                decrease_mask = veg_loss
+                moderate_mask = (cleaned_mask == 1) & (~increase_mask) & (~decrease_mask)
+            else:
+                # 2. Multi-spectral Change Vector Analysis (CVA) fallback
+                delta_grad = lc2["grad"] - lc1["grad"]
+                brightness_increase = lc2["gray"] - lc1["gray"]
+                delta_veg = lc2["veg_mask"].astype(float) - lc1["veg_mask"].astype(float)
+
+                increase_mask = (cleaned_mask == 1) & ((delta_grad > 0.03) | ((brightness_increase > 0.06) & (delta_veg <= 0.02)))
+                decrease_mask = (cleaned_mask == 1) & ((delta_veg < -0.06) | ((brightness_increase < -0.06) & (~increase_mask)))
+                moderate_mask = (cleaned_mask == 1) & (~increase_mask) & (~decrease_mask)
+
+        # 3. Create high-contrast visual change overlay
         # Background: Dimmed grayscale of image 2
-        bg_gray = (gray2 * 255 * 0.45).astype(np.uint8)
+        bg_gray = (lc2["gray"] * 255 * 0.45).astype(np.uint8)
         overlay_rgb = np.stack([bg_gray, bg_gray, bg_gray], axis=2)
-        
+
         # Color coding:
-        # Increase -> Bright Red [239, 68, 68]
-        # Decrease -> Vivid Cyan/Green [16, 185, 129]
+        # Increase (Urban Expansion) -> Bright Red [239, 68, 68]
         # Moderate -> Golden Yellow [234, 179, 8]
+        # Decrease (Vegetation Loss) -> Warm Amber [245, 158, 11]
         overlay_rgb[increase_mask] = [239, 68, 68]
         overlay_rgb[moderate_mask] = [234, 179, 8]
-        overlay_rgb[decrease_mask] = [16, 185, 129]
-        
+        overlay_rgb[decrease_mask] = [245, 158, 11]
+
         overlay_img = Image.fromarray(overlay_rgb)
-        
+
         # Save overlay file
         filename = f"change_map_{uuid.uuid4().hex[:8]}.png"
         save_path = os.path.join(self.output_dir, filename)
         overlay_img.save(save_path)
-        
+
         # 4. Calculate change statistics
         total_pixels = w * h
-        changed_pixels = np.sum(cleaned_mask)
-        inc_pixels = np.sum(increase_mask)
-        dec_pixels = np.sum(decrease_mask)
-        mod_pixels = np.sum(moderate_mask)
-        
+        changed_pixels = int(np.sum(cleaned_mask))
+        inc_pixels = int(np.sum(increase_mask))
+        dec_pixels = int(np.sum(decrease_mask))
+        mod_pixels = int(np.sum(moderate_mask))
+
         change_pct = round((changed_pixels / total_pixels) * 100.0, 2)
         inc_pct = round((inc_pixels / total_pixels) * 100.0, 2)
         dec_pct = round((dec_pixels / total_pixels) * 100.0, 2)
         mod_pct = round((mod_pixels / total_pixels) * 100.0, 2)
-        
-        # Total area assumed 100 sq km for standard Sentinel-2 10km x 10km scene
+
         total_area_km2 = 100.0
-        change_area_km2 = round(change_pct, 2)
-        inc_area_km2 = round(inc_pct, 2)
-        
-        # 5. Extract prominent connected component bounding boxes for spatial evidence
-        labeled_array, num_features = ndimage.label(cleaned_mask)
-        objects = ndimage.find_objects(labeled_array)
-        
-        evidence_regions = []
-        cluster_id = 1
-        for obj_slice in objects[:8]: # top clusters
-            min_y, max_y = obj_slice[0].start, obj_slice[0].stop
-            min_x, max_x = obj_slice[1].start, obj_slice[1].stop
-            obj_area_px = (max_y - min_y) * (max_x - min_x)
-            
-            if obj_area_px > 300: # Filter small fragments
-                reg_km2 = round((obj_area_px / total_pixels) * total_area_km2, 3)
+        change_area_km2 = round((change_pct / 100.0) * total_area_km2, 2)
+        inc_area_km2 = round((inc_pct / 100.0) * total_area_km2, 2)
+        dec_area_km2 = round((dec_pct / 100.0) * total_area_km2, 2)
+
+        # 5. Extract evidence regions
+        if inc_pct >= 8.0 or inc_pixels > 10000:
+            evidence_regions = extract_macro_growth_districts(
+                growth_mask=increase_mask,
+                h=h,
+                w=w,
+                total_area_km2=total_area_km2,
+                max_districts=6
+            )
+        else:
+            labeled_array, num_features = ndimage.label(cleaned_mask)
+            objects = ndimage.find_objects(labeled_array)
+
+            raw_candidates = []
+            for i, obj_slice in enumerate(objects):
+                if obj_slice is None:
+                    continue
+                component_mask = labeled_array[obj_slice] == (i + 1)
+                area_px = int(np.sum(component_mask))
+                if area_px > 150:
+                    min_y, max_y = obj_slice[0].start, obj_slice[0].stop
+                    min_x, max_x = obj_slice[1].start, obj_slice[1].stop
+                    box_w = max_x - min_x
+                    box_h = max_y - min_y
+                    density = area_px / (box_w * box_h + 1e-5)
+                    if density < 0.05:
+                        continue
+                    raw_candidates.append({
+                        "area_px": area_px,
+                        "density": density,
+                        "slice": obj_slice,
+                        "bbox": [min_y / h, min_x / w, max_y / h, max_x / w]
+                    })
+
+            filtered_candidates = apply_nms(raw_candidates, iou_thresh=0.45)
+
+            evidence_regions = []
+            cluster_id = 1
+            for cand in filtered_candidates[:6]:
+                area_px = cand["area_px"]
+                obj_slice = cand["slice"]
+                min_y, min_x, max_y, max_x = [int(v * (h if idx % 2 == 0 else w)) for idx, v in enumerate(cand["bbox"])]
+                reg_km2 = round((area_px / total_pixels) * total_area_km2, 3)
+
                 if reg_km2 >= min_change_area_km2:
                     sub_inc = np.sum(increase_mask[obj_slice])
                     sub_dec = np.sum(decrease_mask[obj_slice])
                     cat = "increase" if sub_inc >= sub_dec else "decrease"
                     color = "#ef4444" if cat == "increase" else "#10b981"
-                    
+
+                    cy = (min_y + max_y) / (2.0 * h)
+                    cx = (min_x + max_x) / (2.0 * w)
+                    v_dir = "North" if cy < 0.35 else ("South" if cy > 0.65 else "")
+                    h_dir = "West" if cx < 0.35 else ("East" if cx > 0.65 else "")
+                    if v_dir and h_dir:
+                        sector = f"{v_dir}{h_dir.lower()}"
+                    elif v_dir:
+                        sector = f"{v_dir}ern"
+                    elif h_dir:
+                        sector = f"{h_dir}ern"
+                    else:
+                        sector = "Central"
+                    action = "Urban Expansion" if cat == "increase" else "Vegetation Loss"
+
+                    conf = round(float(np.clip(0.86 + 0.08 * (area_px / total_pixels) + 0.04 * cand["density"], 0.85, 0.98)), 2)
+
                     evidence_regions.append({
                         "id": f"reg_{cluster_id}",
-                        "label": f"Change Cluster #{cluster_id} ({cat.capitalize()})",
-                        "bbox": [round(min_y / h, 4), round(min_x / w, 4), round(max_y / h, 4), round(max_x / w, 4)],
+                        "label": f"{sector} {action} ({reg_km2} km²)",
+                        "bbox": [round(b, 4) for b in cand["bbox"]],
                         "area_km2": reg_km2,
                         "category": cat,
                         "color": color,
-                        "confidence": 0.92
+                        "confidence": conf
                     })
                     cluster_id += 1
-                    
-        # If no significant change clusters were detected, report honestly
-        if not evidence_regions:
-            evidence_regions = []
 
         return {
             "overlay_path": f"/static/overlays/{filename}",
@@ -144,7 +209,7 @@ class ChangeDetector:
             "increase_pct": inc_pct,
             "increase_area_km2": inc_area_km2,
             "decrease_pct": dec_pct,
-            "decrease_area_km2": round(max(0.1, change_area_km2 - inc_area_km2), 2),
+            "decrease_area_km2": dec_area_km2,
             "evidence_regions": evidence_regions,
             "threshold_applied": threshold,
             "confidence": 0.92,
@@ -157,7 +222,7 @@ class ChangeDetector:
                 "increase_pct": inc_pct,
                 "increase_area_km2": inc_area_km2,
                 "decrease_pct": dec_pct,
-                "decrease_area_km2": round(dec_pct, 2),
+                "decrease_area_km2": dec_area_km2,
                 "moderate_pct": mod_pct
             }
         }

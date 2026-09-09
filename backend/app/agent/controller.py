@@ -1,18 +1,16 @@
 import time
-import os
 from typing import Dict, Any, List, Optional
 from datetime import datetime
 
 from backend.app.schemas.agent_schema import (
     AnalysisRequest, AnalysisResponse, TaskType,
-    WorkflowStep, WorkflowStepStatus, ExecutionSummary,
+    WorkflowStep, ExecutionSummary,
     InputInformation, ImageCardInfo, EvidenceRegion
 )
-from backend.app.schemas.raster_schema import ModalityType
 from backend.app.validation.raster_validator import RasterValidator
 from backend.app.validation.coregistration import CoRegistrationValidator
-from backend.app.validation.modality_detector import ModalityDetector
 from backend.app.agent.router import QueryRouter
+
 from backend.app.agent.planner import WorkflowPlanner
 from backend.app.agent.registry import tool_registry
 from backend.app.agent.trace import trace_recorder
@@ -23,6 +21,7 @@ import backend.app.tools.vqa_tool
 import backend.app.tools.caption_tool
 import backend.app.tools.grounding_tool
 import backend.app.tools.fusion_tool
+from backend.app.reasoning.semantic_engine import semantic_engine
 
 class AgenticController:
     """
@@ -145,31 +144,37 @@ class AgenticController:
             bullet_points = cdvqa_out["bullet_points"]
             confidence_val = change_out.get("confidence", 0.92)
             change_stats = change_out.get("statistics")
-            dyn_regs = change_out.get("evidence_regions", []) or cdvqa_out.get("evidence_regions", [])
+            dyn_regs = cdvqa_out.get("evidence_regions", []) or change_out.get("evidence_regions", [])
             evidence_regions = [EvidenceRegion(**r) for r in dyn_regs]
             heatmap_meta = cdvqa_out.get("heatmap")
-            overlay_url = (heatmap_meta.get("overlay_url") if heatmap_meta else None) or change_out.get("overlay_path", "")
+            change_overlay = change_out.get("overlay_path", "")
+            overlay_url = (heatmap_meta.get("overlay_url") if heatmap_meta else None) or change_overlay
             
+            date_t1 = (val_results[0].metadata.acquisition_date if val_results and val_results[0].metadata.acquisition_date else "Observation T1")
+            date_t2 = (val_results[1].metadata.acquisition_date if len(val_results) > 1 and val_results[1].metadata.acquisition_date else "Observation T2")
+            sensor_t1 = (val_results[0].metadata.sensor if val_results and val_results[0].metadata.sensor else "Optical (S2)")
+            sensor_t2 = (val_results[1].metadata.sensor if len(val_results) > 1 and val_results[1].metadata.sensor else "Optical (S2)")
+
             image_cards = [
                 ImageCardInfo(
                     title="BEFORE IMAGE",
-                    date="2022-01-15",
-                    sensor_badge="Optical (S2)",
+                    date=date_t1,
+                    sensor_badge=sensor_t1,
                     image_url=image_paths[0] if image_paths else "/static/samples/mumbai_t1.jpg",
-                    modality="Optical (S2)"
+                    modality=sensor_t1
                 ),
                 ImageCardInfo(
                     title="AFTER IMAGE",
-                    date="2024-06-20",
-                    sensor_badge="Optical (S2)",
+                    date=date_t2,
+                    sensor_badge=sensor_t2,
                     image_url=image_paths[1] if len(image_paths) > 1 else "/static/samples/mumbai_t2.jpg",
-                    modality="Optical (S2)"
+                    modality=sensor_t2
                 ),
                 ImageCardInfo(
                     title="CHANGE MAP",
                     date="Detected Changes",
                     sensor_badge="Detected Changes",
-                    image_url=overlay_url or "/static/samples/change_map.png",
+                    image_url=change_overlay or overlay_url or "/static/samples/change_map.png",
                     modality="Classification Map"
                 )
             ]
@@ -184,21 +189,25 @@ class AgenticController:
             confidence_val = fusion_out.get("confidence", 0.95)
             evidence_regions = [EvidenceRegion(**r) for r in fusion_out.get("evidence_regions", [])]
             overlay_url = fusion_out.get("overlay_path", "")
+
+            date_s1 = (val_results[0].metadata.acquisition_date if val_results and val_results[0].metadata.acquisition_date else "Observation Date")
+            sensor_opt = (val_results[0].metadata.sensor if val_results and val_results[0].metadata.sensor else "Optical (S2)")
+            sensor_sar = (val_results[1].metadata.sensor if len(val_results) > 1 and val_results[1].metadata.sensor else "SAR (S1)")
             
             image_cards = [
                 ImageCardInfo(
                     title="OPTICAL SENSOR",
-                    date="2024-06-20",
-                    sensor_badge="Optical (S2)",
+                    date=date_s1,
+                    sensor_badge=sensor_opt,
                     image_url=image_paths[0] if image_paths else "/static/samples/optical_cloud.jpg",
-                    modality="Optical (S2)"
+                    modality=sensor_opt
                 ),
                 ImageCardInfo(
                     title="SAR SENSOR",
-                    date="2024-06-20",
-                    sensor_badge="SAR (S1)",
+                    date=date_s1,
+                    sensor_badge=sensor_sar,
                     image_url=image_paths[1] if len(image_paths) > 1 else "/static/samples/sar_backscatter.jpg",
-                    modality="SAR (S1)"
+                    modality=sensor_sar
                 ),
                 ImageCardInfo(
                     title="FUSION PRODUCT",
@@ -218,21 +227,27 @@ class AgenticController:
             confidence_val = ground_out.get("confidence", 0.93)
             evidence_regions = [EvidenceRegion(**r) for r in ground_out.get("evidence_regions", [])]
             overlay_url = ground_out.get("overlay_path", "")
+
+            date_img = (val_results[0].metadata.acquisition_date if val_results and val_results[0].metadata.acquisition_date else "Observation Date")
+            sensor_badge = (val_results[0].metadata.sensor if val_results and val_results[0].metadata.sensor else "Optical (S2)")
+            input_url = image_paths[0] if image_paths else "/static/samples/single_image.jpg"
+            heatmap_meta = ground_out.get("heatmap")
+            heat_url = (heatmap_meta.get("overlay_url") if heatmap_meta else None) or overlay_url or input_url
             
             image_cards = [
                 ImageCardInfo(
                     title="INPUT RASTER",
-                    date="2024-06-20",
-                    sensor_badge="Optical (S2)",
-                    image_url=image_paths[0] if image_paths else "/static/samples/single_image.jpg",
-                    modality="Optical (S2)"
+                    date=date_img,
+                    sensor_badge=sensor_badge,
+                    image_url=input_url,
+                    modality=sensor_badge
                 ),
                 ImageCardInfo(
-                    title="SPECTRAL VIEW",
-                    date="2024-06-20",
-                    sensor_badge="VNIR Bands",
-                    image_url=image_paths[0] if image_paths else "/static/samples/single_image.jpg",
-                    modality="Multispectral"
+                    title="HEATMAP DENSITY",
+                    date="Spatial Intensity",
+                    sensor_badge="Intensity Map",
+                    image_url=heat_url,
+                    modality="Heatmap"
                 ),
                 ImageCardInfo(
                     title="GROUNDING MAP",
@@ -256,28 +271,33 @@ class AgenticController:
             if cap_out.get("evidence_regions"):
                 evidence_regions = [EvidenceRegion(**r) for r in cap_out.get("evidence_regions", [])]
             heatmap_meta = cap_out.get("heatmap")
-            overlay_url = (heatmap_meta.get("overlay_url") if heatmap_meta else None) or (image_paths[0] if image_paths else "/static/samples/single_image.jpg")
+            
+            date_img = (val_results[0].metadata.acquisition_date if val_results and val_results[0].metadata.acquisition_date else "Observation Date")
+            sensor_badge = (val_results[0].metadata.sensor if val_results and val_results[0].metadata.sensor else "Optical (S2)")
+            input_url = image_paths[0] if image_paths else "/static/samples/single_image.jpg"
+            heat_url = (heatmap_meta.get("overlay_url") if heatmap_meta else None) or input_url
+            overlay_url = heat_url
             
             image_cards = [
                 ImageCardInfo(
                     title="REMOTE SENSING SCENE",
-                    date="2024-06-20",
-                    sensor_badge="Optical (S2)",
-                    image_url=overlay_url,
-                    modality="Optical (S2)"
+                    date=date_img,
+                    sensor_badge=sensor_badge,
+                    image_url=input_url,
+                    modality=sensor_badge
                 ),
                 ImageCardInfo(
-                    title="LAND COVER SEGMENTATION",
-                    date="Classification",
-                    sensor_badge="BigEarthNet Taxonomy",
-                    image_url=overlay_url,
-                    modality="Semantic Map"
+                    title="LAND COVER HEATMAP",
+                    date="Sensing Intensity",
+                    sensor_badge="Density Heatmap",
+                    image_url=heat_url,
+                    modality="Semantic Heatmap"
                 ),
                 ImageCardInfo(
-                    title="EVIDENCE OVERVIEW",
-                    date="VRSBench Standard",
-                    sensor_badge="Verified",
-                    image_url=overlay_url,
+                    title="EVIDENCE REGIONS",
+                    date="Spatial Clusters",
+                    sensor_badge="Verified Clusters",
+                    image_url=heat_url,
                     modality="Dense Breakdown"
                 )
             ]
@@ -292,32 +312,37 @@ class AgenticController:
             if vqa_out.get("evidence_regions"):
                 evidence_regions = [EvidenceRegion(**r) for r in vqa_out.get("evidence_regions", [])]
             heatmap_meta = vqa_out.get("heatmap")
-            overlay_url = (heatmap_meta.get("overlay_url") if heatmap_meta else None) or (image_paths[0] if image_paths else "/static/samples/single_image.jpg")
 
+            date_img = (val_results[0].metadata.acquisition_date if val_results and val_results[0].metadata.acquisition_date else "Observation Date")
+            sensor_badge = (val_results[0].metadata.sensor if val_results and val_results[0].metadata.sensor else "Optical (S2)")
+            input_url = image_paths[0] if image_paths else "/static/samples/single_image.jpg"
+            heat_url = (heatmap_meta.get("overlay_url") if heatmap_meta else None) or input_url
+            overlay_url = heat_url
             
             image_cards = [
                 ImageCardInfo(
                     title="INPUT SCENE",
-                    date="2024-06-20",
-                    sensor_badge="Optical (S2)",
-                    image_url=overlay_url,
-                    modality="Optical (S2)"
+                    date=date_img,
+                    sensor_badge=sensor_badge,
+                    image_url=input_url,
+                    modality=sensor_badge
                 ),
                 ImageCardInfo(
-                    title="SPECTRAL PROFILE",
-                    date="10m Resolution",
-                    sensor_badge="Sentinel-2",
-                    image_url=overlay_url,
-                    modality="Multispectral"
+                    title="HEATMAP OVERLAY",
+                    date="Response Intensity",
+                    sensor_badge="Density Map",
+                    image_url=heat_url,
+                    modality="Intensity Heatmap"
                 ),
                 ImageCardInfo(
                     title="VQA VISUAL EVIDENCE",
                     date="Adapted RS-VLM",
                     sensor_badge="Analyzed",
-                    image_url=overlay_url,
+                    image_url=heat_url,
                     modality="Spatial Context"
                 )
             ]
+
 
         t4_dur = (time.time() - t4_start) * 1000.0
         
@@ -425,7 +450,6 @@ class AgenticController:
         ref_task = task_id_map.get(task_type, "vqa")
         
         if heatmap_meta is None:
-            from backend.app.reasoning.semantic_engine import semantic_engine
             q_low = query.lower()
             if any(k in q_low for k in ["heat", "flood", "water", "inundat", "change", "densit", "built", "urban", "diff", "sar", "radar", "fusion"]) or len(image_paths) >= 2:
                 if task_type == TaskType.OPTICAL_SAR or "sar" in q_low or "radar" in q_low or "fusion" in q_low:
@@ -474,17 +498,59 @@ class AgenticController:
             stat_pct = 0.0
             stat_area = "0.0 km²"
 
+        detected_lc = []
+        if ref_task == "change":
+            if 'cdvqa_out' in locals() and cdvqa_out.get("land_cover"):
+                detected_lc = cdvqa_out["land_cover"]
+            elif image_paths:
+                props = semantic_engine.analyze_scene_properties(image_paths)
+                t1_lc = props.get("t1_landcover", {})
+                t2_lc = props.get("t2_landcover", {})
+                b2 = t2_lc.get("builtup_pct", props.get("builtup_pct", 0))
+                v2 = t2_lc.get("veg_pct", props.get("veg_pct", 0))
+                b1 = t1_lc.get("builtup_pct", 0)
+                v1 = t1_lc.get("veg_pct", 0)
+                c_stats = props.get("change_stats", {})
+                inc = c_stats.get("increase_pct", 0)
+                if inc > 0:
+                    detected_lc.append(f"Net Urban Expansion (+{inc}%)")
+                if b2 > 1.0:
+                    detected_lc.append(f"Built-up T2: {b2}% (T1 Baseline: {b1}%)")
+                if v2 > 1.0:
+                    detected_lc.append(f"Vegetation T2: {v2}% (T1 Baseline: {v1}%)")
+        elif ref_task in ["caption", "vqa", "grounding", "cross_modal"]:
+            if 'cap_out' in locals() and cap_out.get("land_cover_breakdown"):
+                for k, v in cap_out["land_cover_breakdown"].items():
+                    val_clean = float(str(v).replace("%", "").strip() or 0)
+                    if val_clean > 1.0:
+                        detected_lc.append(f"{k.replace('_', ' ').title()} ({v})")
+            if not detected_lc and image_paths:
+                props = semantic_engine.analyze_scene_properties(image_paths)
+                w_p = props.get("water_pct", 0)
+                b_p = props.get("builtup_pct", 0)
+                v_p = props.get("veg_pct", props.get("vegetation_pct", 0))
+                s_p = props.get("bare_pct", props.get("bare_soil_pct", 0))
+                if w_p > 1.0:
+                    detected_lc.append(f"Water Body ({w_p}%)")
+                if b_p > 1.0:
+                    detected_lc.append(f"Built-up Structures ({b_p}%)")
+                if v_p > 1.0:
+                    detected_lc.append(f"Vegetation ({v_p}%)")
+                if s_p > 1.0:
+                    detected_lc.append(f"Bare Soil ({s_p}%)")
+
         ref_result = {
             "answer": headline_answer,
             "caption": headline_answer if ref_task == "caption" else None,
             "fusion_insight": "SAR backscatter roughness (VV/VH polarization) confirms dense built-up structural foundations and reveals high dielectric soil moisture beneath optical cloud cover." if ref_task == "cross_modal" else None,
             "primary_changes": bullet_points,
-            "land_cover": ["Urban Built-up", "Meandering Waterway", "Agricultural Land", "Sparse Vegetation"] if ref_task in ["caption", "vqa", "grounding"] else [],
+            "land_cover": detected_lc,
             "evidence_regions": formatted_regions,
             "change_percentage": stat_pct,
             "affected_area": stat_area,
             "heatmap": heatmap_meta
         }
+
 
         
         # Derive confidence breakdown from actual validation and analysis

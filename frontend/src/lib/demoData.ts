@@ -203,7 +203,7 @@ export function generateLocalAnalysis(query: string, slots: ImageSlot[]): Analys
   } else if (isCounting && isWater) {
     headline = 'Identified 3 distinct water bodies: 1 primary meandering river channel and 2 peripheral oxbow retention basins.';
     bullets = [
-      'Primary River Corridor: Bisects the region from northwest (19.088°N, 72.862°E) through central-south with an average channel width of 140 meters.',
+      'Primary River Corridor: Bisects the region from northwest through central-south with an average channel width of 140 meters.',
       'Northern Retention Basin: Oxbow water body located at [0.08, 0.72, 0.22, 0.86] covering ~1.4 km² with high NDWI (>0.45).',
       'Southern Retention Basin: Shallow water reservoir at [0.70, 0.32, 0.88, 0.48] exhibiting seasonal sediment accumulation.',
       'Riparian Buffers: Form a continuous 40-meter vegetative protective zone along embankments.'
@@ -226,20 +226,20 @@ export function generateLocalAnalysis(query: string, slots: ImageSlot[]): Analys
     task = 'change';
     const isVegLoss = q.includes('vegetation') || q.includes('loss');
     headline = isVegLoss
-      ? 'Vegetation cover experienced an estimated net reduction of 4.4% (4.4 km²), converted primarily into built-up infrastructure.'
-      : 'Built-up area increased in the eastern section (+10.4% expansion), mainly around the new road corridor and adjacent settlements.';
+      ? 'Vegetation cover experienced an estimated net reduction of -54.7% (-54.7 km²), undergoing direct conversion into built-up infrastructure across the scene.'
+      : 'Built-up area experienced extensive urban expansion of +54.1% (+54.1 km²), transforming former agricultural and natural land into developed infrastructure across the Central, Eastern, and Northern sectors.';
     bullets = isVegLoss
       ? [
-          'Agricultural Encroachment: Approximately 4.4 km² of previous crop and fallow acreage in the southeast underwent conversion.',
-          'Riparian Corridor Preservation: Vegetation buffers within 50 meters of the central river channel showed high temporal stability (<1.2% change).',
-          'Seasonal Reflectance Delta: Normalized Difference Vegetation Index (NDVI) dropped from 0.58 to 0.22 in converted zones.',
-          'Net Spatial Transition: Total surface transition across the observation window registered at 14.8%.'
+          'Vegetation Transition: Active vegetative canopy contracted from 96.7% down to 41.9% (-54.7 km² net reduction).',
+          'Land-Cover Conversion: Former agricultural and forest parcels were repurposed directly into impervious built-up surface and transport arteries.',
+          'Spatial Delineation: Grounded 6 major transition districts covering 62.0 km² of verified landscape transformation.',
+          'Preserved Buffer: Preserved natural parcels in outlying zones retain 41.9% vegetative coverage.'
         ]
       : [
-          'Built-up Infrastructure: Substantial structural additions (+10.4% / 10.4 km²) concentrated along the eastern transport artery.',
-          'Surface Dynamics: Total detected land-cover transition is 14.8% (14.8 km²) across the 100 km² observation footprint.',
-          'Hydrology & River: The main drainage waterway and riparian embankments maintained strict morphological stability.',
-          'Southern Transition: Peripheral bare land parcels in the south transitioned from fallow ground into active construction sites.'
+          'Structural Expansion: Built-up coverage surged from 2.3% at initial baseline to 57.1% in the current observation (+54.1 km² net growth).',
+          'Agricultural Conversion: Former cropland and forest canopy (-54.7 km² / -54.7%) were converted directly into impervious structures and transport arteries.',
+          'Major Development Corridors: Delineated 6 prominent continuous growth districts across the Central, Eastern, and Northern corridors.',
+          'Peripheral Buffer: Preserved vegetated open land remains stable in outlying peripheral parcels (41.9% remaining coverage).'
         ];
     heatmap = {
       type: 'change',
@@ -247,15 +247,19 @@ export function generateLocalAnalysis(query: string, slots: ImageSlot[]): Analys
       intensity_label: 'Change Magnitude (T1 → T2)',
       palette: 'thermal',
       points: [
-        { x: 0.72, y: 0.45, intensity: 0.94, radius: 0.22, label: 'Eastern Settlement Expansion' },
-        { x: 0.52, y: 0.50, intensity: 0.82, radius: 0.14, label: 'Central Road Junction Built-up' },
-        { x: 0.80, y: 0.76, intensity: 0.88, radius: 0.18, label: 'Southeastern Corridor Growth' }
+        { x: 0.52, y: 0.50, intensity: 0.96, radius: 0.22, label: 'Central Urban Core Expansion' },
+        { x: 0.72, y: 0.45, intensity: 0.94, radius: 0.20, label: 'Eastern Industrial & Logistics Hub' },
+        { x: 0.25, y: 0.26, intensity: 0.91, radius: 0.18, label: 'Northwestern Residential Settlement' },
+        { x: 0.76, y: 0.72, intensity: 0.93, radius: 0.19, label: 'Southeastern Corridor Expansion' }
       ]
     };
     regions = [
-      { id: 'c_1', type: 'change', label: 'Eastern Built-up Expansion (+10.4 km²)', box: [0.60, 0.25, 0.35, 0.50], confidence: 0.94 },
-      { id: 'c_2', type: 'change', label: 'Central Intersection Node', box: [0.45, 0.40, 0.20, 0.20], confidence: 0.91 },
-      { id: 'c_3', type: 'change', label: 'Southern Agricultural Conversion', box: [0.20, 0.72, 0.30, 0.18], confidence: 0.88 }
+      { id: 'c_1', type: 'change', label: 'Central Urban Expansion (+9.69 km²)', box: [0.31, 0.28, 0.44, 0.44], confidence: 0.95 },
+      { id: 'c_2', type: 'change', label: 'Western Urban Expansion (+9.56 km²)', box: [0.00, 0.31, 0.41, 0.44], confidence: 0.95 },
+      { id: 'c_3', type: 'change', label: 'Northeast Urban Expansion (+9.73 km²)', box: [0.49, 0.06, 0.44, 0.44], confidence: 0.95 },
+      { id: 'c_4', type: 'change', label: 'Southeast Urban Expansion (+9.53 km²)', box: [0.49, 0.48, 0.44, 0.44], confidence: 0.95 },
+      { id: 'c_5', type: 'change', label: 'Northwest Urban Expansion (+7.79 km²)', box: [0.00, 0.04, 0.41, 0.44], confidence: 0.95 },
+      { id: 'c_6', type: 'change', label: 'Southern Urban Expansion (+4.30 km²)', box: [0.27, 0.72, 0.44, 0.28], confidence: 0.94 }
     ];
   } else if (isSar) {
     task = 'cross_modal';
@@ -341,6 +345,13 @@ export function generateLocalAnalysis(query: string, slots: ImageSlot[]): Analys
       change_percentage: isChange ? 14.8 : undefined,
       affected_area: isChange ? '14.8 km²' : undefined,
       heatmap
+    },
+    input_information: {
+      location: slots[0]?.meta?.coordinates || 'Geospatial Scene (EPSG:4326)',
+      resolution: slots[0]?.meta?.resolution || '10.0m / pixel (Sentinel-2)',
+      area: '10.0 km x 10.0 km (100.0 sq. km)',
+      before_image: slots[0] ? { date: slots[0].timestamp, sensor: slots[0].meta?.sensor || 'Sentinel-2' } : undefined,
+      after_image: slots[1] ? { date: slots[1].timestamp, sensor: slots[1].meta?.sensor || 'Sentinel-2' } : undefined
     },
     heatmap,
     trace: [

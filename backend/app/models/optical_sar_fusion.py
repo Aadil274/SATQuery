@@ -37,7 +37,7 @@ class OpticalSARFusionModel:
         
         # SAR: High backscatter indicates urban corner reflectors and structural roughness
         high_backscatter = (sar_arr > 0.36) | (sar_arr_rgb[:, :, 0] > 0.40)
-        specular_water = (sar_arr < 0.12)
+        specular_water = (sar_arr < 0.12) & (sar_arr > 0.02)
         
         # 2. Cross-Modal Fusion Layer:
         # Construct false-color joint fusion product:
@@ -73,53 +73,11 @@ class OpticalSARFusionModel:
             "Cross-Modal Alignment: Optical and SAR imagery fused with sub-pixel co-registration."
         ]
         
-        evidence_regions = []
-        # Derive evidence from actual computed masks
-        if np.any(high_backscatter):
-            ys, xs = np.where(high_backscatter)
-            if len(ys) > 0:
-                ymin_n, ymax_n = float(ys.min()) / h, float(ys.max()) / h
-                xmin_n, xmax_n = float(xs.min()) / w, float(xs.max()) / w
-                evidence_regions.append({
-                    "id": "fusion_reg_1",
-                    "label": f"SAR High-Backscatter Zone ({urban_sar_pct}% coverage)",
-                    "bbox": [round(ymin_n, 4), round(xmin_n, 4), round(ymax_n, 4), round(xmax_n, 4)],
-                    "area_km2": round(urban_sar_pct, 2),
-                    "category": "feature",
-                    "color": "#38bdf8",
-                    "confidence": round(min(0.98, 0.7 + urban_sar_pct / 100.0), 2)
-                })
-        if np.any(specular_water):
-            ys, xs = np.where(specular_water)
-            if len(ys) > 0:
-                water_pct = round((np.sum(specular_water) / (w * h)) * 100.0, 1)
-                ymin_n, ymax_n = float(ys.min()) / h, float(ys.max()) / h
-                xmin_n, xmax_n = float(xs.min()) / w, float(xs.max()) / w
-                evidence_regions.append({
-                    "id": "fusion_reg_2",
-                    "label": f"Specular Radar Dark Zone ({water_pct}% coverage)",
-                    "bbox": [round(ymin_n, 4), round(xmin_n, 4), round(ymax_n, 4), round(xmax_n, 4)],
-                    "area_km2": round(water_pct, 2),
-                    "category": "feature",
-                    "color": "#0284c7",
-                    "confidence": round(min(0.98, 0.7 + water_pct / 100.0), 2)
-                })
-        veg_mask = greenness > 0.08
-        if np.any(veg_mask):
-            ys, xs = np.where(veg_mask)
-            if len(ys) > 0:
-                veg_pct = round((np.sum(veg_mask) / (w * h)) * 100.0, 1)
-                ymin_n, ymax_n = float(ys.min()) / h, float(ys.max()) / h
-                xmin_n, xmax_n = float(xs.min()) / w, float(xs.max()) / w
-                evidence_regions.append({
-                    "id": "fusion_reg_3",
-                    "label": f"Vegetation Sector ({veg_pct}% coverage)",
-                    "bbox": [round(ymin_n, 4), round(xmin_n, 4), round(ymax_n, 4), round(xmax_n, 4)],
-                    "area_km2": round(veg_pct, 2),
-                    "category": "feature",
-                    "color": "#22c55e",
-                    "confidence": round(min(0.98, 0.7 + veg_pct / 100.0), 2)
-                })
+        from backend.app.reasoning.semantic_engine import semantic_engine
+        sar_regs = semantic_engine._extract_feature_regions(high_backscatter, category="feature", color="#38bdf8", label_prefix="SAR Backscatter Structure", max_regions=2)
+        wat_regs = semantic_engine._extract_feature_regions(specular_water, category="feature", color="#0284c7", label_prefix="Specular Water Zone", max_regions=2)
+        veg_regs = semantic_engine._extract_feature_regions(greenness > 0.08, category="feature", color="#22c55e", label_prefix="Vegetation Parcel", max_regions=2)
+        evidence_regions = sar_regs + wat_regs + veg_regs
         
         return {
             "overlay_path": f"/static/overlays/{filename}",

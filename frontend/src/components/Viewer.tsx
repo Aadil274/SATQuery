@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   ZoomIn,
   ZoomOut,
@@ -32,6 +32,7 @@ export const Viewer: React.FC<ViewerProps> = ({ slots, analysis, running }) => {
   const [showHeatmap, setShowHeatmap] = useState(true);
   const [heatmapOpacity, setHeatmapOpacity] = useState(85);
 
+  const [isDragging, setIsDragging] = useState(false);
   const dragging = useRef<{ x: number; y: number } | null>(null);
   const stageRef = useRef<HTMLDivElement | null>(null);
 
@@ -54,13 +55,13 @@ export const Viewer: React.FC<ViewerProps> = ({ slots, analysis, running }) => {
     (analysis?.query && /heat|flood|water|inundat|change|densit|built|urban|diff/i.test(analysis.query))
   );
 
+  const locationStr = analysis?.input_information?.location && !analysis.input_information.location.includes("Unknown")
+    ? analysis.input_information.location
+    : (slots[0]?.meta?.coordinates || slots[0]?.meta?.crs || "Center: 0.0000° N, 0.0000° E (Unreferenced)");
 
-  // Reset zoom & pan when image slots change
-  useEffect(() => {
-    setZoom(1);
-    setPan({ x: 0, y: 0 });
-    setLayer(0);
-  }, [slots.map((s) => s.preview).join('|')]);
+  const resolutionStr = analysis?.input_information?.resolution && !analysis.input_information.resolution.includes("Unknown")
+    ? analysis.input_information.resolution
+    : (slots[0]?.meta?.resolution || "10.0m / pixel (Sentinel-2)");
 
   // Zoom handlers
   const onWheel = (e: React.WheelEvent) => {
@@ -69,6 +70,7 @@ export const Viewer: React.FC<ViewerProps> = ({ slots, analysis, running }) => {
   };
 
   const onDown = (e: React.MouseEvent) => {
+    setIsDragging(true);
     dragging.current = {
       x: e.clientX - pan.x,
       y: e.clientY - pan.y
@@ -84,6 +86,7 @@ export const Viewer: React.FC<ViewerProps> = ({ slots, analysis, running }) => {
   };
 
   const onUp = () => {
+    setIsDragging(false);
     dragging.current = null;
   };
 
@@ -266,7 +269,7 @@ export const Viewer: React.FC<ViewerProps> = ({ slots, analysis, running }) => {
             className="relative"
             style={{
               transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
-              transition: dragging.current ? 'none' : 'transform .12s ease'
+              transition: isDragging ? 'none' : 'transform .12s ease'
             }}
           >
             <div
@@ -344,14 +347,15 @@ export const Viewer: React.FC<ViewerProps> = ({ slots, analysis, running }) => {
                   {/* Split Labels */}
                   <span className="absolute top-2 left-2 telemetry bg-black/75 rounded px-2 py-0.5 z-10 border border-cyan-500/20 text-cyan-300">
                     {task === 'change'
-                      ? `T1 · BEFORE (${leftImg.timestamp ? leftImg.timestamp.slice(0, 4) : '2024'})`
+                      ? `T1 · BEFORE${leftImg.timestamp ? ` (${leftImg.timestamp.slice(0, 10)})` : ''}`
                       : (leftImg.modality === 'sar' ? 'SAR (C-BAND)' : 'OPTICAL (MSI)')}
                   </span>
                   <span className="absolute top-2 right-2 telemetry bg-black/75 rounded px-2 py-0.5 z-10 border border-[#FF7300]/30 text-[#FF7300]">
                     {task === 'change'
-                      ? `T2 · AFTER (${rightImg.timestamp ? rightImg.timestamp.slice(0, 4) : '2026'})`
+                      ? `T2 · AFTER${rightImg.timestamp ? ` (${rightImg.timestamp.slice(0, 10)})` : ''}`
                       : (rightImg.modality === 'sar' ? 'SAR (C-BAND)' : 'OPTICAL (MSI)')}
                   </span>
+
                 </>
               )}
 
@@ -363,7 +367,7 @@ export const Viewer: React.FC<ViewerProps> = ({ slots, analysis, running }) => {
                   style={{ opacity: heatmapOpacity / 100 }}
                 >
                   {/* High-fidelity raster heatmap overlay if present */}
-                  {heatmap?.overlay_url && (
+                  {heatmap?.overlay_url ? (
                     <img
                       src={heatmap.overlay_url}
                       alt={heatmap.title || "Heatmap Overlay"}
@@ -371,62 +375,63 @@ export const Viewer: React.FC<ViewerProps> = ({ slots, analysis, running }) => {
                       className="absolute inset-0 w-full h-full object-cover select-none"
                       style={{ mixBlendMode: 'screen' }}
                     />
+                  ) : (
+                    /* Multi-cluster thermal / hydrological gradient layer fallback when no raster overlay is available */
+                    <div className="absolute inset-0" style={{ filter: 'blur(9px)' }}>
+                      {(heatmap?.points && heatmap.points.length > 0
+                        ? heatmap.points.map((pt, i) => {
+                            const cx = pt.x * 100;
+                            const cy = pt.y * 100;
+                            const size = (pt.radius || 0.2) * 100 * 2.2;
+                            const isWater = heatmap.palette === 'water' || heatmap.type === 'flood';
+                            return (
+                              <div
+                                key={i}
+                                className="absolute rounded-full sq-fade-up"
+                                style={{
+                                  left: `${cx}%`,
+                                  top: `${cy}%`,
+                                  width: `${size}%`,
+                                  height: `${size}%`,
+                                  transform: 'translate(-50%, -50%)',
+                                  mixBlendMode: 'screen',
+                                  background: isWater
+                                    ? 'radial-gradient(circle, rgba(0,240,255,0.92) 0%, rgba(2,132,199,0.7) 35%, rgba(3,105,161,0.25) 65%, transparent 78%)'
+                                    : 'radial-gradient(circle, rgba(255,23,68,0.95) 0%, rgba(255,115,0,0.7) 35%, rgba(255,214,0,0.25) 65%, transparent 78%)'
+                                }}
+                              />
+                            );
+                          })
+                        : (changeRegions.length > 0 ? changeRegions : rawRegions).map((r, i) => {
+                            const box = r.box || [0.2, 0.2, 0.2, 0.2];
+                            const [x, y, w, h] = box;
+                            const cx = (x + w / 2) * 100;
+                            const cy = (y + h / 2) * 100;
+                            const size = Math.max(w, h, 0.12) * 100 * 2.0;
+                            const isWater = r.type === 'water';
+                            return (
+                              <div
+                                key={i}
+                                className="absolute rounded-full sq-fade-up"
+                                style={{
+                                  left: `${cx}%`,
+                                  top: `${cy}%`,
+                                  width: `${size}%`,
+                                  height: `${size}%`,
+                                  transform: 'translate(-50%, -50%)',
+                                  mixBlendMode: 'screen',
+                                  background: isWater
+                                    ? 'radial-gradient(circle, rgba(0,240,255,0.92) 0%, rgba(2,132,199,0.65) 35%, rgba(3,105,161,0.2) 65%, transparent 75%)'
+                                    : 'radial-gradient(circle, rgba(255,23,68,0.95) 0%, rgba(255,115,0,0.65) 35%, rgba(255,210,0,0.2) 65%, transparent 75%)'
+                                }}
+                              />
+                            );
+                          }))}
+                    </div>
                   )}
-
-                  {/* Multi-cluster thermal / hydrological gradient layer */}
-                  <div className="absolute inset-0" style={{ filter: 'blur(9px)' }}>
-                    {(heatmap?.points && heatmap.points.length > 0
-                      ? heatmap.points.map((pt, i) => {
-                          const cx = pt.x * 100;
-                          const cy = pt.y * 100;
-                          const size = (pt.radius || 0.2) * 100 * 2.2;
-                          const isWater = heatmap.palette === 'water' || heatmap.type === 'flood';
-                          return (
-                            <div
-                              key={i}
-                              className="absolute rounded-full sq-fade-up"
-                              style={{
-                                left: `${cx}%`,
-                                top: `${cy}%`,
-                                width: `${size}%`,
-                                height: `${size}%`,
-                                transform: 'translate(-50%, -50%)',
-                                mixBlendMode: 'screen',
-                                background: isWater
-                                  ? 'radial-gradient(circle, rgba(0,240,255,0.92) 0%, rgba(2,132,199,0.7) 35%, rgba(3,105,161,0.25) 65%, transparent 78%)'
-                                  : 'radial-gradient(circle, rgba(255,23,68,0.95) 0%, rgba(255,115,0,0.7) 35%, rgba(255,214,0,0.25) 65%, transparent 78%)'
-                              }}
-                            />
-                          );
-                        })
-                      : (changeRegions.length > 0 ? changeRegions : rawRegions).map((r, i) => {
-                          const box = r.box || [0.2, 0.2, 0.2, 0.2];
-                          const [x, y, w, h] = box;
-                          const cx = (x + w / 2) * 100;
-                          const cy = (y + h / 2) * 100;
-                          const size = Math.max(w, h, 0.12) * 100 * 2.0;
-                          const isWater = r.type === 'water';
-                          return (
-                            <div
-                              key={i}
-                              className="absolute rounded-full sq-fade-up"
-                              style={{
-                                left: `${cx}%`,
-                                top: `${cy}%`,
-                                width: `${size}%`,
-                                height: `${size}%`,
-                                transform: 'translate(-50%, -50%)',
-                                mixBlendMode: 'screen',
-                                background: isWater
-                                  ? 'radial-gradient(circle, rgba(0,240,255,0.92) 0%, rgba(2,132,199,0.65) 35%, rgba(3,105,161,0.2) 65%, transparent 75%)'
-                                  : 'radial-gradient(circle, rgba(255,23,68,0.95) 0%, rgba(255,115,0,0.65) 35%, rgba(255,210,0,0.2) 65%, transparent 75%)'
-                              }}
-                            />
-                          );
-                        }))}
-                  </div>
                 </div>
               )}
+
 
               {/* Evidence Bounding Boxes (Referring Grounding & Spatial Evidence) */}
               {(singleView ? layer === primaryIdx || !isPair : true) &&
@@ -452,7 +457,7 @@ export const Viewer: React.FC<ViewerProps> = ({ slots, analysis, running }) => {
                     >
                       {/* BBox Label Tag */}
                       <span
-                        className="absolute -top-5 left-0 whitespace-nowrap text-[11px] font-mono-x font-bold px-1.5 py-0.2 rounded shadow"
+                        className="absolute -top-5 left-0 whitespace-nowrap text-[11px] font-mono-x font-bold px-1.5 py-0.5 rounded shadow"
                         style={{
                           background: c.stroke,
                           color: '#0B0E14'
@@ -505,9 +510,9 @@ export const Viewer: React.FC<ViewerProps> = ({ slots, analysis, running }) => {
       {/* Bottom Telemetry Bar */}
       <div className="sq-glass border-t border-cyan-500/15 px-4 py-2 flex items-center justify-between text-[11px] font-mono-x text-slate-400 z-20">
         <div className="flex items-center gap-4">
-          <span>COORDINATES: <span className="text-cyan-300">19.0760° N, 72.8777° E</span></span>
+          <span>LOCATION: <span className="text-cyan-300">{locationStr}</span></span>
           <span className="text-cyan-500/30">|</span>
-          <span>GSD RESOLUTION: <span className="text-emerald-400">10.0m / pixel</span></span>
+          <span>RESOLUTION: <span className="text-emerald-400">{resolutionStr}</span></span>
         </div>
         <div className="flex items-center gap-3">
           {slots.length > 0 && (

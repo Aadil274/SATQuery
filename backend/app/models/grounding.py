@@ -58,14 +58,21 @@ class VisualGroundingModel:
             draw.rectangle([px_xmin, max(0, px_ymin - 24), px_xmin + 180, px_ymin], fill=(20, 24, 39, 220))
             draw.text((px_xmin + 6, max(2, px_ymin - 20)), f"{b['label']} ({int(b['conf']*100)}%)", fill=(255, 255, 255, 255))
             
+            width_box = round(max(0.04, px_xmax - px_xmin) / w, 4)
+            height_box = round(max(0.04, px_ymax - px_ymin) / h, 4)
+            x_box = round(px_xmin / w, 4)
+            y_box = round(px_ymin / h, 4)
+
             evidence_regions.append({
                 "id": f"ground_{i+1}",
                 "label": b["label"],
                 "bbox": b["bbox"],
+                "box": [x_box, y_box, width_box, height_box],
                 "area_km2": round(((px_xmax - px_xmin) * (px_ymax - px_ymin) / (w * h)) * 100.0, 2),
                 "category": b["cat"],
                 "color": b["color"],
-                "confidence": b["conf"]
+                "confidence": b["conf"],
+                "note": b["label"]
             })
 
         filename = f"grounding_{uuid.uuid4().hex[:8]}.png"
@@ -77,5 +84,6 @@ class VisualGroundingModel:
             "evidence_regions": evidence_regions,
             "headline_answer": headline,
             "bullet_points": bullets,
-            "confidence": 0.93
+            "confidence": dyn_res.get("confidence", 0.93),
+            "heatmap": dyn_res.get("heatmap")
         }

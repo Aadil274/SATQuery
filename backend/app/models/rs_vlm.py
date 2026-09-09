@@ -54,10 +54,10 @@ class RemoteSensingVLM:
         q = query or "Describe the land cover and major objects visible in this scene"
         dyn_res = semantic_engine.answer_query_dynamically(q, "caption", image_paths)
         props = semantic_engine.analyze_scene_properties(image_paths)
-        veg_pct = props.get("veg_pct", 41.6)
-        built_pct = props.get("builtup_pct", 28.4)
-        water_pct = props.get("water_pct", 15.8)
-        bare_pct = props.get("bare_pct", 14.2)
+        veg_pct = props.get("veg_pct", 0.0)
+        built_pct = props.get("builtup_pct", 0.0)
+        water_pct = props.get("water_pct", 0.0)
+        bare_pct = props.get("bare_pct", 0.0)
         return {
             "caption": dyn_res["headline_answer"],
             "bullet_points": dyn_res["bullet_points"],

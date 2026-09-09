@@ -31,6 +31,7 @@ class ChangeDetectionVQA:
             "confidence": dyn_res.get("confidence", 0.92),
             "change_statistics": stats,
             "heatmap": dyn_res.get("heatmap"),
-            "evidence_regions": dyn_res.get("evidence_regions", [])
+            "evidence_regions": dyn_res.get("evidence_regions", []),
+            "land_cover": dyn_res.get("land_cover", [])
         }
 

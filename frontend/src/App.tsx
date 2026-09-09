@@ -15,7 +15,7 @@ import {
   analyze,
   getRegistry
 } from './lib/api';
-import { PRESETS, Preset, generateLocalAnalysis } from './lib/demoData';
+import { Preset, generateLocalAnalysis } from './lib/demoData';
 
 
 interface Toast {
@@ -48,26 +48,15 @@ export function App() {
     }, 3500);
   };
 
-  // On mount: fetch model registry and pre-load default bi-temporal preset
-  useEffect(() => {
-    getRegistry()
-      .then((d) => setModelInfo(d.model_info))
-      .catch(() => {});
-
-    // Pre-load Bi-temporal Change Preset so user has interactive imagery immediately
-    const defaultPreset = PRESETS.find((p) => p.id === 'change') || PRESETS[0];
-    if (defaultPreset) {
-      loadPreset(defaultPreset, false);
-    }
-  }, []);
-
   const dispatchQuery = (q: string) => {
     window.dispatchEvent(new CustomEvent('sq-set-query', { detail: q }));
   };
 
   const loadPreset = async (p: Preset, showToast = true) => {
-    setAnalysis(null);
-    if (showToast) addToast(`Loading preset: ${p.title}…`, 'info');
+    if (showToast) {
+      addToast(`Loading preset: ${p.title}…`, 'info');
+      setAnalysis(null);
+    }
 
     try {
       const built: ImageSlot[] = [];
@@ -88,10 +77,17 @@ export function App() {
       setSlots(built);
       dispatchQuery(p.query);
       if (showToast) addToast(`${p.title} loaded (${built.length} scenes)`, 'success');
-    } catch (e) {
+    } catch {
       addToast('Failed to load preset imagery', 'error');
     }
   };
+
+  // On mount: fetch model registry
+  useEffect(() => {
+    getRegistry()
+      .then((d) => setModelInfo(d.model_info))
+      .catch(() => {});
+  }, []);
 
   const addFile = async (file: File) => {
     if (slots.length >= 2) {
@@ -121,7 +117,7 @@ export function App() {
       setSlots((prev) => [...prev, slot]);
       setAnalysis(null);
       addToast(`${file.name} uploaded successfully`, 'success');
-    } catch (e) {
+    } catch {
       addToast('Failed to process uploaded file', 'error');
     }
   };
@@ -270,7 +266,12 @@ export function App() {
 
         {/* Center: Geospatial Viewport + Bottom Dock */}
         <div className="flex-1 flex flex-col overflow-hidden">
-          <Viewer slots={slots} analysis={analysis} running={running} />
+          <Viewer
+            key={slots.map((s) => s.preview).join('|')}
+            slots={slots}
+            analysis={analysis}
+            running={running}
+          />
           <BottomDock
             analysis={analysis}
             modelInfo={modelInfo}

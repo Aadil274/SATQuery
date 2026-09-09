@@ -178,7 +178,7 @@ export const LeftPanel: React.FC<LeftPanelProps> = ({
         {/* SECTION 2: Preset Scenarios */}
         <div>
           <div className="telemetry mb-2 text-cyan-400/80">
-            BENCHMARK PRESETS (PROBLEM STATEMENT #26167)
+            BENCHMARK PRESETS
           </div>
           <div className="space-y-2">
             {PRESETS.map((preset) => {

@@ -113,7 +113,7 @@ export const Header: React.FC<HeaderProps> = ({ status, historyCount = 0, onOpen
           <History className="w-3.5 h-3.5 text-[#FF7300]" />
           <span>HISTORY</span>
           {historyCount > 0 && (
-            <span className="ml-1 px-1.5 py-0.2 rounded-full bg-[#FF7300] text-black text-xs font-bold">
+            <span className="ml-1 px-1.5 py-0.5 rounded-full bg-[#FF7300] text-black text-xs font-bold">
               {historyCount}
             </span>
           )}
