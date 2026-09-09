@@ -39,6 +39,11 @@ export const Viewer: React.FC<ViewerProps> = ({ slots, analysis, running }) => {
   const task = analysis?.task || (slots.length === 2 && slots.some((s) => s.modality === 'sar') ? 'cross_modal' : slots.length === 2 ? 'change' : 'vqa');
   const isPair = slots.length === 2;
   const primaryIdx = task === 'cross_modal' ? Math.max(0, slots.findIndex((s) => s.modality === 'optical')) : isPair ? 1 : 0;
+  const primarySlot = slots[primaryIdx] || slots[0];
+  const aspectW = primarySlot?.width || slots[0]?.width;
+  const aspectH = primarySlot?.height || slots[0]?.height;
+  const containerAspect = (aspectW && aspectH) ? `${aspectW} / ${aspectH}` : '1 / 1';
+  const isWiderThanSquare = Boolean(aspectW && aspectH && aspectW > aspectH);
 
   const rawRegions = (analysis?.result?.evidence_regions || []) as EvidenceRegionData[];
   const regions = showRegions ? rawRegions : [];
@@ -183,20 +188,33 @@ export const Viewer: React.FC<ViewerProps> = ({ slots, analysis, running }) => {
 
           {/* Toggle Spatial Intensity Heatmap */}
           {isHeatmapEligible && (
-            <button
-              data-testid="toggle-heatmap"
-              title={showHeatmap ? 'Hide Intensity Heatmap' : 'Show Intensity Heatmap'}
-              onClick={() => setShowHeatmap((v) => !v)}
-              className={`sq-btn w-7 h-7 rounded flex items-center justify-center transition-all ${
-                showHeatmap
-                  ? heatmap?.palette === 'water' || heatmap?.type === 'flood'
-                    ? 'bg-cyan-500/20 text-[#00F0FF] sq-glow'
-                    : 'bg-rose-500/20 text-rose-400 sq-glow'
-                  : 'text-slate-400 hover:text-rose-300'
-              }`}
-            >
-              <Flame className="w-4 h-4" />
-            </button>
+            <div className="flex items-center gap-1">
+              <button
+                data-testid="toggle-heatmap"
+                title={showHeatmap ? 'Hide Intensity Heatmap' : 'Show Intensity Heatmap'}
+                onClick={() => setShowHeatmap((v) => !v)}
+                className={`sq-btn w-7 h-7 rounded flex items-center justify-center transition-all ${
+                  showHeatmap
+                    ? heatmap?.palette === 'water' || heatmap?.type === 'flood'
+                      ? 'bg-cyan-500/20 text-[#00F0FF] sq-glow'
+                      : 'bg-rose-500/20 text-rose-400 sq-glow'
+                    : 'text-slate-400 hover:text-rose-300'
+                }`}
+              >
+                <Flame className="w-4 h-4" />
+              </button>
+              {showHeatmap && (
+                <input
+                  type="range"
+                  min="20"
+                  max="100"
+                  value={heatmapOpacity}
+                  onChange={(e) => setHeatmapOpacity(Number(e.target.value))}
+                  title={`Heatmap Opacity: ${heatmapOpacity}%`}
+                  className="w-14 h-1.5 accent-[#00F0FF] bg-slate-700/80 rounded-lg cursor-pointer"
+                />
+              )}
+            </div>
           )}
 
         </div>
@@ -275,8 +293,10 @@ export const Viewer: React.FC<ViewerProps> = ({ slots, analysis, running }) => {
             <div
               className="relative rounded-lg shadow-2xl overflow-hidden border border-cyan-500/30"
               style={{
-                width: 'min(66vh, 760px)',
-                aspectRatio: '1 / 1'
+                width: isWiderThanSquare ? 'min(82vw, 860px)' : 'min(66vh, 760px)',
+                aspectRatio: containerAspect,
+                maxHeight: '74vh',
+                maxWidth: '90vw'
               }}
             >
               {/* Case 1: Single View */}
@@ -285,7 +305,7 @@ export const Viewer: React.FC<ViewerProps> = ({ slots, analysis, running }) => {
                   src={shown?.preview}
                   alt={shown?.name || 'satellite scene'}
                   draggable={false}
-                  className="w-full h-full object-cover select-none"
+                  className="w-full h-full object-fill select-none"
                 />
               ) : (
                 /* Case 2: Interactive Swipe Split Screen */
@@ -295,7 +315,7 @@ export const Viewer: React.FC<ViewerProps> = ({ slots, analysis, running }) => {
                     src={rightImg.preview}
                     alt={rightImg.name || "after observation"}
                     draggable={false}
-                    className="absolute inset-0 w-full h-full object-cover select-none"
+                    className="absolute inset-0 w-full h-full object-fill select-none"
                   />
 
                   {/* Overlaid Clipped Image (Top: visible on left side: T1 / Optical) */}
@@ -307,7 +327,7 @@ export const Viewer: React.FC<ViewerProps> = ({ slots, analysis, running }) => {
                       src={leftImg.preview}
                       alt={leftImg.name || "before observation"}
                       draggable={false}
-                      className="w-full h-full object-cover select-none"
+                      className="w-full h-full object-fill select-none"
                     />
                   </div>
 
@@ -372,8 +392,8 @@ export const Viewer: React.FC<ViewerProps> = ({ slots, analysis, running }) => {
                       src={heatmap.overlay_url}
                       alt={heatmap.title || "Heatmap Overlay"}
                       draggable={false}
-                      className="absolute inset-0 w-full h-full object-cover select-none"
-                      style={{ mixBlendMode: 'screen' }}
+                      className="absolute inset-0 w-full h-full object-fill select-none"
+                      style={{ mixBlendMode: 'normal' }}
                     />
                   ) : (
                     /* Multi-cluster thermal / hydrological gradient layer fallback when no raster overlay is available */

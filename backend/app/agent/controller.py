@@ -132,11 +132,28 @@ class AgenticController:
                 {"threshold": request.threshold or 0.35, "min_change_area": request.min_area_km2 or 0.01}
             )
             
+            date_t1 = (
+                (request.images[0].get("timestamp") if request.images and len(request.images) > 0 and request.images[0].get("timestamp") else None) or
+                (val_results[0].metadata.acquisition_date if val_results and val_results[0].metadata.acquisition_date else "Observation T1")
+            )
+            date_t2 = (
+                (request.images[1].get("timestamp") if request.images and len(request.images) > 1 and request.images[1].get("timestamp") else None) or
+                (val_results[1].metadata.acquisition_date if len(val_results) > 1 and val_results[1].metadata.acquisition_date else "Observation T2")
+            )
+            sensor_t1 = (
+                (request.images[0].get("sensor") or request.images[0].get("modality") if request.images and len(request.images) > 0 else None) or
+                (val_results[0].metadata.sensor if val_results and val_results[0].metadata.sensor else "Optical (S2)")
+            )
+            sensor_t2 = (
+                (request.images[1].get("sensor") or request.images[1].get("modality") if request.images and len(request.images) > 1 else None) or
+                (val_results[1].metadata.sensor if len(val_results) > 1 and val_results[1].metadata.sensor else "Optical (S2)")
+            )
+
             # Execute CDVQA
             cdvqa_out = cdvqa_tool.execute({
                 "query": query,
                 "change_data": change_out,
-                "dates": ["2022-01-15", "2024-06-20"],
+                "dates": [date_t1, date_t2],
                 "images": image_paths
             }, {})
             
@@ -149,11 +166,6 @@ class AgenticController:
             heatmap_meta = cdvqa_out.get("heatmap")
             change_overlay = change_out.get("overlay_path", "")
             overlay_url = (heatmap_meta.get("overlay_url") if heatmap_meta else None) or change_overlay
-            
-            date_t1 = (val_results[0].metadata.acquisition_date if val_results and val_results[0].metadata.acquisition_date else "Observation T1")
-            date_t2 = (val_results[1].metadata.acquisition_date if len(val_results) > 1 and val_results[1].metadata.acquisition_date else "Observation T2")
-            sensor_t1 = (val_results[0].metadata.sensor if val_results and val_results[0].metadata.sensor else "Optical (S2)")
-            sensor_t2 = (val_results[1].metadata.sensor if len(val_results) > 1 and val_results[1].metadata.sensor else "Optical (S2)")
 
             image_cards = [
                 ImageCardInfo(
@@ -512,8 +524,14 @@ class AgenticController:
                 v1 = t1_lc.get("veg_pct", 0)
                 c_stats = props.get("change_stats", {})
                 inc = c_stats.get("increase_pct", 0)
+                trans = c_stats.get("transition_type", "urban_expansion")
                 if inc > 0:
-                    detected_lc.append(f"Net Urban Expansion (+{inc}%)")
+                    if trans == "flood_inundation":
+                        detected_lc.append(f"Water Inundation (+{inc}%)")
+                    elif trans == "water_recession":
+                        detected_lc.append(f"Water Recession (-{c_stats.get('decrease_pct', inc)}%)")
+                    else:
+                        detected_lc.append(f"Net Urban Expansion (+{inc}%)")
                 if b2 > 1.0:
                     detected_lc.append(f"Built-up T2: {b2}% (T1 Baseline: {b1}%)")
                 if v2 > 1.0:
@@ -577,7 +595,7 @@ class AgenticController:
         ]
         for tool_name in selected_tool_names:
             ref_trace.append({
-                "label": f"Route → {tool_name}",
+                "label": f"Route -> {tool_name}",
                 "status": "done",
                 "detail": "Specialist model executed",
                 "ms": 45

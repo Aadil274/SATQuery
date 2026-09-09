@@ -45,16 +45,21 @@ class ChangeDetector:
             classify_landcover_features,
             compute_adaptive_threshold,
             extract_macro_growth_districts,
-            apply_nms
+            apply_nms,
+            relative_radiometric_normalization
         )
 
         lc1 = classify_landcover_features(arr1)
         lc2 = classify_landcover_features(arr2)
 
-        # 1. Compute multi-channel radiometric difference
-        diff_rgb = np.abs(arr2 - arr1)
+        # 1. Compute multi-channel radiometric difference with Relative Radiometric Normalization
+        arr2_norm = relative_radiometric_normalization(arr1, arr2)
+        diff_rgb = np.abs(arr2_norm - arr1)
         diff_magnitude = np.sqrt(np.sum(diff_rgb ** 2, axis=2)) / np.sqrt(3.0)
         max_diff = float(np.max(diff_magnitude)) if diff_magnitude.size > 0 else 0.0
+
+        is_water_dominant = False
+        is_recession_dominant = False
 
         if max_diff < 0.04:
             cleaned_mask = np.zeros((h, w), dtype=np.uint8)
@@ -66,15 +71,29 @@ class ChangeDetector:
             # Physical Land-Cover Transitions
             urban_expansion = (lc1["veg_mask"] | lc1["bare_mask"]) & lc2["builtup_mask"] & (diff_magnitude > 0.06)
             veg_loss = lc1["veg_mask"] & (~lc2["veg_mask"]) & (diff_magnitude > 0.06)
+            water_expansion = (~lc1["water_mask"]) & lc2["water_mask"] & (diff_magnitude > 0.06)
+            water_recession = lc1["water_mask"] & (~lc2["water_mask"]) & (diff_magnitude > 0.06)
 
             applied_threshold = compute_adaptive_threshold(diff_magnitude, min_thresh=0.14, max_thresh=0.35, fallback=threshold)
             radiometric_mask = (diff_magnitude > applied_threshold).astype(np.uint8)
-            cleaned_mask = ((radiometric_mask == 1) | urban_expansion | veg_loss).astype(np.uint8)
+            cleaned_mask = ((radiometric_mask == 1) | urban_expansion | veg_loss | water_expansion | water_recession).astype(np.uint8)
 
             exp_pct = float(np.mean(urban_expansion)) * 100.0
             loss_pct = float(np.mean(veg_loss)) * 100.0
+            water_inun_pct = float(np.mean(water_expansion)) * 100.0
+            water_rec_pct = float(np.mean(water_recession)) * 100.0
 
-            if exp_pct >= 2.0 or loss_pct >= 2.0:
+            if water_inun_pct >= 8.0 and water_inun_pct > exp_pct * 2.0:
+                is_water_dominant = True
+                increase_mask = water_expansion
+                decrease_mask = water_recession
+                moderate_mask = (cleaned_mask == 1) & (~increase_mask) & (~decrease_mask)
+            elif water_rec_pct >= 8.0 and water_rec_pct > exp_pct * 2.0:
+                is_recession_dominant = True
+                increase_mask = water_expansion
+                decrease_mask = water_recession
+                moderate_mask = (cleaned_mask == 1) & (~increase_mask) & (~decrease_mask)
+            elif exp_pct >= 1.5 or loss_pct >= 2.0:
                 increase_mask = urban_expansion
                 decrease_mask = veg_loss
                 moderate_mask = (cleaned_mask == 1) & (~increase_mask) & (~decrease_mask)
@@ -94,10 +113,13 @@ class ChangeDetector:
         overlay_rgb = np.stack([bg_gray, bg_gray, bg_gray], axis=2)
 
         # Color coding:
-        # Increase (Urban Expansion) -> Bright Red [239, 68, 68]
+        # Increase (Urban Expansion / Water Inundation) -> Bright Red [239, 68, 68] or Cyan [0, 240, 255]
         # Moderate -> Golden Yellow [234, 179, 8]
-        # Decrease (Vegetation Loss) -> Warm Amber [245, 158, 11]
-        overlay_rgb[increase_mask] = [239, 68, 68]
+        # Decrease (Vegetation Loss / Recession) -> Warm Amber [245, 158, 11]
+        if is_water_dominant:
+            overlay_rgb[increase_mask] = [0, 240, 255]
+        else:
+            overlay_rgb[increase_mask] = [239, 68, 68]
         overlay_rgb[moderate_mask] = [234, 179, 8]
         overlay_rgb[decrease_mask] = [245, 158, 11]
 
@@ -126,13 +148,29 @@ class ChangeDetector:
         dec_area_km2 = round((dec_pct / 100.0) * total_area_km2, 2)
 
         # 5. Extract evidence regions
+        if is_water_dominant:
+            macro_label = "Inundation Zone"
+            macro_cat = "water"
+            macro_color = "#00F0FF"
+        elif is_recession_dominant:
+            macro_label = "Water Contraction"
+            macro_cat = "decrease"
+            macro_color = "#F59E0B"
+        else:
+            macro_label = "Urban Expansion"
+            macro_cat = "increase"
+            macro_color = "#ef4444"
+
         if inc_pct >= 8.0 or inc_pixels > 10000:
             evidence_regions = extract_macro_growth_districts(
                 growth_mask=increase_mask,
                 h=h,
                 w=w,
                 total_area_km2=total_area_km2,
-                max_districts=6
+                max_districts=6,
+                label_suffix=macro_label,
+                category=macro_cat,
+                color=macro_color
             )
         else:
             labeled_array, num_features = ndimage.label(cleaned_mask)
@@ -173,7 +211,18 @@ class ChangeDetector:
                     sub_inc = np.sum(increase_mask[obj_slice])
                     sub_dec = np.sum(decrease_mask[obj_slice])
                     cat = "increase" if sub_inc >= sub_dec else "decrease"
-                    color = "#ef4444" if cat == "increase" else "#10b981"
+                    
+                    if is_water_dominant:
+                        color = "#00F0FF" if cat == "increase" else "#F59E0B"
+                        action = "Inundation Zone" if cat == "increase" else "Water Recession"
+                        cat = "water" if cat == "increase" else "decrease"
+                    elif is_recession_dominant:
+                        color = "#F59E0B"
+                        action = "Water Contraction"
+                        cat = "decrease"
+                    else:
+                        color = "#ef4444" if cat == "increase" else "#10b981"
+                        action = "Urban Expansion" if cat == "increase" else "Vegetation Loss"
 
                     cy = (min_y + max_y) / (2.0 * h)
                     cx = (min_x + max_x) / (2.0 * w)
@@ -187,7 +236,6 @@ class ChangeDetector:
                         sector = f"{h_dir}ern"
                     else:
                         sector = "Central"
-                    action = "Urban Expansion" if cat == "increase" else "Vegetation Loss"
 
                     conf = round(float(np.clip(0.86 + 0.08 * (area_px / total_pixels) + 0.04 * cand["density"], 0.85, 0.98)), 2)
 
