@@ -1,6 +1,7 @@
 import time
 from typing import Dict, Any, List, Optional
 from datetime import datetime
+from concurrent.futures import ThreadPoolExecutor
 
 from backend.app.schemas.agent_schema import (
     AnalysisRequest, AnalysisResponse, TaskType,
@@ -122,15 +123,23 @@ class AgenticController:
         heatmap_meta = None
         
         if task_type == TaskType.CHANGE_DETECTION:
-            # Change Detection Specialist + CDVQA
+            # Change Detection Specialist + CDVQA (Parallel Specialist Dispatch)
             change_tool = tool_registry.get("change_detection")
             cdvqa_tool = tool_registry.get("change_vqa")
             
-            # Execute ChangeNet
-            change_out = change_tool.execute(
-                {"images": image_paths},
-                {"threshold": request.threshold or 0.35, "min_change_area": request.min_area_km2 or 0.01}
-            )
+            # Dispatch specialist models in parallel worker threads
+            with ThreadPoolExecutor(max_workers=2) as executor:
+                change_future = executor.submit(
+                    change_tool.execute,
+                    {"images": image_paths},
+                    {"threshold": request.threshold or 0.35, "min_change_area": request.min_area_km2 or 0.01}
+                )
+                scene_future = executor.submit(
+                    semantic_engine.analyze_scene_properties,
+                    image_paths
+                )
+                change_out = change_future.result()
+                scene_props = scene_future.result()
             
             date_t1 = (
                 (request.images[0].get("timestamp") if request.images and len(request.images) > 0 and request.images[0].get("timestamp") else None) or
@@ -149,7 +158,7 @@ class AgenticController:
                 (val_results[1].metadata.sensor if len(val_results) > 1 and val_results[1].metadata.sensor else "Optical (S2)")
             )
 
-            # Execute CDVQA
+            # Execute CDVQA Reasoning Engine to integrate change evidence
             cdvqa_out = cdvqa_tool.execute({
                 "query": query,
                 "change_data": change_out,
@@ -364,6 +373,8 @@ class AgenticController:
             step_name="4. Specialist Execution",
             status="completed",
             details={
+                "dispatch_mode": "parallel_threaded",
+                "parallel_workers": 2,
                 "tools_executed": selected_tool_names,
                 "output_overlay": overlay_url,
                 "evidence_regions_count": len(evidence_regions)

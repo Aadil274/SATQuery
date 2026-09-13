@@ -2,6 +2,7 @@
 ### Autonomous Earth Observation Architecture & Evaluation System
 
 [![Evaluation Status](https://img.shields.io/badge/Evaluation-Ready-00ed64.svg)](#)
+[![CI](https://github.com/Aadil274/SATQuery/actions/workflows/ci.yml/badge.svg)](https://github.com/Aadil274/SATQuery/actions)
 [![Python 3.13](https://img.shields.io/badge/Python-3.13-blue.svg)](#)
 [![FastAPI](https://img.shields.io/badge/FastAPI-Production-009688.svg)](#)
 [![React 19](https://img.shields.io/badge/React%2019-Tailwind%20v4-61dafb.svg)](#)
