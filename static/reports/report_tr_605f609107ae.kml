@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2">
+  <Document>
+    <name>SatQuery AI Analysis - tr_605f609107ae</name>
+    <description><![CDATA[
+      <h3>SatQuery AI Earth Observation Report</h3>
+      <p><b>Query:</b> Export change polygons to Google Earth KML</p>
+      <p><b>Finding:</b> Built-up area experienced extensive urban expansion of +0.6% (+0.6 km²), transforming former agricultural and natural land into developed infrastructure across the Northeast sectors.</p>
+      <p><b>Hazard Level:</b> ADVISORY</p>
+    ]]></description>
+
+    <!-- Styles (KML Color format: aabbggrr) -->
+    <Style id="polyWater">
+      <LineStyle><color>ffff0000</color><width>2.5</width></LineStyle>
+      <PolyStyle><color>7fffff00</color></PolyStyle>
+    </Style>
+    <Style id="polyIncrease">
+      <LineStyle><color>ff0000ff</color><width>2.5</width></LineStyle>
+      <PolyStyle><color>7f0000ff</color></PolyStyle>
+    </Style>
+    <Style id="polyDecrease">
+      <LineStyle><color>ff00a5ff</color><width>2.5</width></LineStyle>
+      <PolyStyle><color>7f00a5ff</color></PolyStyle>
+    </Style>
+    <Style id="polyGeneric">
+      <LineStyle><color>ffffff00</color><width>2.0</width></LineStyle>
+      <PolyStyle><color>60ffff00</color></PolyStyle>
+    </Style>
+
+    <Placemark>
+      <name>Northeast Urban Expansion (0.11 km²)</name>
+      <description><![CDATA[
+        <b>Task:</b> Change Detection (Bi-temporal)<br/>
+        <b>Area:</b> 0.11 km²<br/>
+        <b>Model Confidence:</b> 89%<br/>
+        <b>Alert Status:</b> ADVISORY
+      ]]></description>
+      <styleUrl>#polyIncrease</styleUrl>
+      <Polygon>
+        <extrude>1</extrude>
+        <altitudeMode>clampToGround</altitudeMode>
+        <outerBoundaryIs>
+          <LinearRing>
+            <coordinates>72.90229,19.08567,0 72.904153,19.08567,0 72.904153,19.08811,0 72.90229,19.08811,0 72.90229,19.08567,0</coordinates>
+          </LinearRing>
+        </outerBoundaryIs>
+      </Polygon>
+    </Placemark>
+    <Placemark>
+      <name>Southeast Urban Expansion (0.09 km²)</name>
+      <description><![CDATA[
+        <b>Task:</b> Change Detection (Bi-temporal)<br/>
+        <b>Area:</b> 0.09 km²<br/>
+        <b>Model Confidence:</b> 87%<br/>
+        <b>Alert Status:</b> ADVISORY
+      ]]></description>
+      <styleUrl>#polyIncrease</styleUrl>
+      <Polygon>
+        <extrude>1</extrude>
+        <altitudeMode>clampToGround</altitudeMode>
+        <outerBoundaryIs>
+          <LinearRing>
+            <coordinates>72.894339,19.06145,0 72.899502,19.06145,0 72.899502,19.065745,0 72.894339,19.065745,0 72.894339,19.06145,0</coordinates>
+          </LinearRing>
+        </outerBoundaryIs>
+      </Polygon>
+    </Placemark>
+    <Placemark>
+      <name>Northern Urban Expansion (0.06 km²)</name>
+      <description><![CDATA[
+        <b>Task:</b> Change Detection (Bi-temporal)<br/>
+        <b>Area:</b> 0.06 km²<br/>
+        <b>Model Confidence:</b> 87%<br/>
+        <b>Alert Status:</b> ADVISORY
+      ]]></description>
+      <styleUrl>#polyIncrease</styleUrl>
+      <Polygon>
+        <extrude>1</extrude>
+        <altitudeMode>clampToGround</altitudeMode>
+        <outerBoundaryIs>
+          <LinearRing>
+            <coordinates>72.875012,19.08508,0 72.877806,19.08508,0 72.877806,19.0885,0 72.875012,19.0885,0 72.875012,19.08508,0</coordinates>
+          </LinearRing>
+        </outerBoundaryIs>
+      </Polygon>
+    </Placemark>
+    <Placemark>
+      <name>Southwest Vegetation Loss (0.35 km²)</name>
+      <description><![CDATA[
+        <b>Task:</b> Change Detection (Bi-temporal)<br/>
+        <b>Area:</b> 0.35 km²<br/>
+        <b>Model Confidence:</b> 91%<br/>
+        <b>Alert Status:</b> ADVISORY
+      ]]></description>
+      <styleUrl>#polyDecrease</styleUrl>
+      <Polygon>
+        <extrude>1</extrude>
+        <altitudeMode>clampToGround</altitudeMode>
+        <outerBoundaryIs>
+          <LinearRing>
+            <coordinates>72.857654,19.063695,0 72.860961,19.063695,0 72.860961,19.066525,0 72.857654,19.066525,0 72.857654,19.063695,0</coordinates>
+          </LinearRing>
+        </outerBoundaryIs>
+      </Polygon>
+    </Placemark>
+    <Placemark>
+      <name>Northwest Vegetation Loss (0.33 km²)</name>
+      <description><![CDATA[
+        <b>Task:</b> Change Detection (Bi-temporal)<br/>
+        <b>Area:</b> 0.33 km²<br/>
+        <b>Model Confidence:</b> 91%<br/>
+        <b>Alert Status:</b> ADVISORY
+      ]]></description>
+      <styleUrl>#polyDecrease</styleUrl>
+      <Polygon>
+        <extrude>1</extrude>
+        <altitudeMode>clampToGround</altitudeMode>
+        <outerBoundaryIs>
+          <LinearRing>
+            <coordinates>72.858067,19.0886,0 72.861061,19.0886,0 72.861061,19.091525,0 72.858067,19.091525,0 72.858067,19.0886,0</coordinates>
+          </LinearRing>
+        </outerBoundaryIs>
+      </Polygon>
+    </Placemark>
+    <Placemark>
+      <name>Southwest Vegetation Loss (0.31 km²)</name>
+      <description><![CDATA[
+        <b>Task:</b> Change Detection (Bi-temporal)<br/>
+        <b>Area:</b> 0.31 km²<br/>
+        <b>Model Confidence:</b> 91%<br/>
+        <b>Alert Status:</b> ADVISORY
+      ]]></description>
+      <styleUrl>#polyDecrease</styleUrl>
+      <Polygon>
+        <extrude>1</extrude>
+        <altitudeMode>clampToGround</altitudeMode>
+        <outerBoundaryIs>
+          <LinearRing>
+            <coordinates>72.85476,19.057445,0 72.857755,19.057445,0 72.857755,19.06018,0 72.85476,19.06018,0 72.85476,19.057445,0</coordinates>
+          </LinearRing>
+        </outerBoundaryIs>
+      </Polygon>
+    </Placemark>
+  </Document>
+</kml>

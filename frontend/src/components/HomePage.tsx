@@ -9,13 +9,15 @@ import {
   Sparkles,
   ShieldCheck,
   ChevronRight,
-  ArrowRight
+  ArrowRight,
+  Globe
 } from 'lucide-react';
 import { PRESETS, Preset } from '../lib/demoData';
 
 interface HomePageProps {
   onOpenConsole: () => void;
   onLaunchPreset: (p: Preset) => void;
+  onOpenStac?: () => void;
 }
 
 interface Star {
@@ -283,6 +285,17 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenConsole, onLaunchPrese
             <span>Explore Mission Presets</span>
             <span className="text-[#FF7300]">↓</span>
           </a>
+
+          {onOpenStac && (
+            <button
+              data-testid="hero-live-stac-btn"
+              onClick={onOpenStac}
+              className="sq-btn px-6 py-4 rounded-xl font-mono-x text-xs text-[#00F0FF] border border-cyan-400/50 hover:border-cyan-300 bg-cyan-950/50 hover:bg-cyan-900/60 tracking-wider uppercase transition-all flex items-center gap-2 sq-glow cursor-pointer"
+            >
+              <Globe className="w-4 h-4 text-[#00F0FF] animate-pulse" />
+              <span>Live Satellite (STAC)</span>
+            </button>
+          )}
         </div>
 
         {/* Key Metrics Strip */}

@@ -1,5 +1,6 @@
 import os
 import uuid
+from datetime import datetime, timezone
 import numpy as np
 from PIL import Image
 from typing import Dict, Any, List, Optional, Tuple
@@ -860,11 +861,13 @@ class GeospatialReasoningEngine:
         self,
         query: str,
         task_type_str: str,
-        image_paths: List[str]
+        image_paths: List[str],
+        language: str = "en"
     ) -> Dict[str, Any]:
         """
         Parses query intent, analyzes multi-spectral raster characteristics, and synthesizes
-        a non-repetitive, context-grounded response with dynamic evidence regions and heatmaps.
+        a non-repetitive, context-grounded response with dynamic evidence regions, heatmaps,
+        actionable decision-support advisories, and Indic multilingual support.
         """
         q = query.strip()
         q_lower = q.lower()
@@ -893,16 +896,16 @@ class GeospatialReasoningEngine:
         change_mask = change_stats.get("change_mask")
 
         # -------------------------------------------------------------
-        # Determine Query Category & Intent
+        # Determine Query Category & Intent (English + Indic Vocabulary)
         # -------------------------------------------------------------
-        is_counting = any(k in q_lower for k in ["how many", "count", "number of", "quantity of"])
-        is_flood = any(k in q_lower for k in ["flood", "inundat", "submerge", "water level", "overflow", "drown"])
-        is_vegetation = any(k in q_lower for k in ["vegetation", "crop", "farmland", "forest", "agriculture", "chlorophyll", "greenery", "loss"])
-        is_water = any(k in q_lower for k in ["river", "lake", "water body", "water bodies", "canal", "waterway", "reservoir", "hydrol"])
-        is_sar = any(k in q_lower for k in ["sar", "radar", "backscatter", "penetrat", "microwave", "cloud", "polarization", "c-band", "vv", "vh"])
-        is_bridge_road = any(k in q_lower for k in ["bridge", "road", "highway", "corridor", "transport", "intersection", "artery"])
-        is_change_intent = any(k in q_lower for k in ["change", "difference", "increase", "decrease", "expansion", "growth", "shrink", "before and after", "between these dates"])
-        is_density = any(k in q_lower for k in ["density", "cluster", "concentration", "impervious"])
+        is_counting = any(k in q_lower for k in ["how many", "count", "number of", "quantity of", "कितने", "संख्या", "எத்தனை", "ఎన్ని", "কত", "किती"])
+        is_flood = any(k in q_lower for k in ["flood", "inundat", "submerge", "water level", "overflow", "drown", "बाढ़", "जलमग्न", "डूब", "வெள்ளம்", "వరద", "বন্যা", "पूर"])
+        is_vegetation = any(k in q_lower for k in ["vegetation", "crop", "farmland", "forest", "agriculture", "chlorophyll", "greenery", "loss", "पेड़", "फसल", "कृषि", "जंगल", "वनस्पति", "பயிர்", "వ్యవసాయం", "কৃষি", "पीक"])
+        is_water = any(k in q_lower for k in ["river", "lake", "water body", "water bodies", "canal", "waterway", "reservoir", "hydrol", "पानी", "जल", "तालाब", "नदी", "நீர்", "நீர்ப்பரப்பு", "నీరు", "నది", "জল", "नदी"])
+        is_sar = any(k in q_lower for k in ["sar", "radar", "backscatter", "penetrat", "microwave", "cloud", "polarization", "c-band", "vv", "vh", "रडार", "बादल", "मेघ", "ரேடார்", "రడార్", "মেঘ"])
+        is_bridge_road = any(k in q_lower for k in ["bridge", "road", "highway", "corridor", "transport", "intersection", "artery", "सड़क", "पुल", "பாலம்", "వంతెన", "সড়ক", "रस्ता"])
+        is_change_intent = any(k in q_lower for k in ["change", "difference", "increase", "decrease", "expansion", "growth", "shrink", "before and after", "between these dates", "बदलाव", "परिवर्तन", "वृद्धि", "कमी", "नुकसान", "மாற்றம்", "మార్పు", "পরিবর্তন", "बदल"])
+        is_density = any(k in q_lower for k in ["density", "cluster", "concentration", "impervious", "घनत्व", "आबादी", "அடர்த்தி", "సాంద్రత", "ঘনত্ব"])
 
         # Decide if heatmap should be synthesized
         heatmap_type = (
@@ -1197,6 +1200,37 @@ class GeospatialReasoningEngine:
             f"Bare Soil / Fallow ({bare_pct}%)"
         ]
 
+        # -------------------------------------------------------------
+        # 5. Prescriptive Decision Support & Actionable Advisory
+        # -------------------------------------------------------------
+        actionable_advisory = self.compute_actionable_advisory(
+            task=task_type_str,
+            scene=scene,
+            headline=headline,
+            is_flood=is_flood,
+            is_vegetation=is_vegetation,
+            is_sar=is_sar,
+            evidence_regions=formatted_regions
+        )
+        hazard_level = actionable_advisory.get("hazard_level", "NORMAL")
+
+        # -------------------------------------------------------------
+        # 6. Vernacular Localization (Indic Languages)
+        # -------------------------------------------------------------
+        headline, bullets, actionable_advisory = self.localize_text(
+            headline=headline,
+            bullets=bullets,
+            advisory=actionable_advisory,
+            lang=language
+        )
+
+        # -------------------------------------------------------------
+        # 7. 160-Character Compact SMS / Radio Emergency Brief
+        # -------------------------------------------------------------
+        impact_stat = f"{inc_km2} sq.km change" if inc_km2 > 0 else (f"{dec_km2} sq.km lost" if dec_km2 > 0 else f"{round(water_pct, 1)}% water")
+        brief_head = headline[:70].replace("[HI] ", "").replace("[TA] ", "").replace("[TE] ", "").replace("[BN] ", "").replace("[MR] ", "")
+        emergency_sms_brief = f"🚨 SATQUERY ALERT: {brief_head}.. Hazard: {hazard_level} | Extent: {impact_stat} | Priority: {actionable_advisory.get('priority_action', 'Nominal')[:50]}.."
+
         return {
             "headline_answer": headline,
             "bullet_points": bullets,
@@ -1204,7 +1238,202 @@ class GeospatialReasoningEngine:
             "evidence_regions": formatted_regions,
             "land_cover": land_cover_breakdown,
             "heatmap": heatmap_meta,
-            "change_statistics": change_stats if is_pair else None
+            "change_statistics": change_stats if is_pair else None,
+            "hazard_level": hazard_level,
+            "actionable_advisory": actionable_advisory,
+            "emergency_sms_brief": emergency_sms_brief,
+            "language": language
         }
+
+    def compute_actionable_advisory(
+        self,
+        task: str,
+        scene: Dict[str, Any],
+        headline: str,
+        is_flood: bool,
+        is_vegetation: bool,
+        is_sar: bool,
+        evidence_regions: List[Dict[str, Any]]
+    ) -> Dict[str, Any]:
+        """
+        Synthesizes prescriptive decision-support advisories and hazard alerts
+        for Disaster Management, Agriculture (PMFBY), and Municipal Planning authorities.
+        """
+        change_stats = scene.get("change_stats", {})
+        inc_pct = change_stats.get("increase_pct", 0.0)
+        dec_pct = change_stats.get("decrease_pct", 0.0)
+        water_pct = scene.get("water_pct", 0.0)
+        trans_type = change_stats.get("transition_type", "nominal")
+
+        # 1. Disaster / Flood Inundation
+        if is_flood or trans_type == "flood_inundation" or (water_pct > 8.0 and inc_pct >= 5.0):
+            if inc_pct >= 8.0 or water_pct >= 15.0:
+                hazard = "CRITICAL"
+                title = "Emergency Flood Inundation Alert"
+                priority = "Execute immediate evacuation protocols for riverside settlements. Restrict low-elevation road access."
+                directives = [
+                    "Deploy emergency response units and rescue boats to grounded inundation sectors.",
+                    "Divert vehicular traffic away from submerged arterial routes to high-ground corridors.",
+                    "Isolate contaminated drinking water networks in inundated flood zones."
+                ]
+            elif inc_pct >= 3.0 or water_pct >= 8.0:
+                hazard = "WARNING"
+                title = "Flood Advisory & Riparian Surcharge Alert"
+                priority = "Alert riparian panchayats and activate emergency drainage pumps."
+                directives = [
+                    "Pre-position mobile pumps and embankment reinforcement sandbags.",
+                    "Advise farmers in low-lying parcels of imminent standing water risk."
+                ]
+            else:
+                hazard = "ADVISORY"
+                title = "Hydrological Monitoring Check"
+                priority = "Maintain routine hydrological watch; water levels remain manageable."
+                directives = [
+                    "Continuous telemetry monitoring of retention reservoirs and canal outflows."
+                ]
+            domain = "disaster"
+
+        # 2. Agriculture & Environment (PMFBY Insurance)
+        elif is_vegetation or trans_type == "vegetation_loss" or dec_pct >= 5.0:
+            if dec_pct >= 10.0:
+                hazard = "WARNING"
+                title = "Severe Canopy Loss & PMFBY Claim Alert"
+                priority = "Issue Crop Damage Verification Certificate for PM Fasal Bima Yojana (PMFBY) insurance expedited settlement."
+                directives = [
+                    f"Export verified geospatial damage boundaries ({dec_pct}% canopy loss) to district agriculture portal.",
+                    "Deploy field verification officers to inspect root desiccation in grounded sectors.",
+                    "Activate regional emergency irrigation release for adjoining distressed crops."
+                ]
+            else:
+                hazard = "ADVISORY"
+                title = "Agricultural Vegetation Stress Notice"
+                priority = "Schedule targeted soil moisture sampling across detected canopy stress zones."
+                directives = [
+                    "Monitor seasonal crop health indices (NDVI/VARI) over the next satellite pass.",
+                    "Advise local cooperatives on conservation tillage and moisture retention."
+                ]
+            domain = "agriculture"
+
+        # 3. Urban Planning & Encroachment
+        elif inc_pct >= 2.0 or trans_type == "urban_expansion":
+            if water_pct > 3.0:
+                hazard = "WARNING"
+                title = "Urban Sprawl & Riparian Buffer Notice"
+                priority = "Verify environmental buffer compliance: newly grounded structures are proximate to water bodies."
+                directives = [
+                    "Audit municipal development permits against newly delineated impervious footprints.",
+                    "Enforce mandatory 50-meter riverbank non-development buffer zone.",
+                    "Ensure stormwater discharge capacity is scaled for newly paved surfaces."
+                ]
+            else:
+                hazard = "NORMAL"
+                title = "Municipal Infrastructure Growth Record"
+                priority = "Update regional master plan and property registry with newly identified built-up footprints."
+                directives = [
+                    "Ingest verified building proposals into municipal GIS database.",
+                    "Plan civic utility capacity (power grid, water supply) for expanded sectors."
+                ]
+            domain = "urban"
+
+        # 4. Defence / SAR All-Weather
+        elif is_sar:
+            hazard = "NORMAL"
+            title = "All-Weather Radar Surveillance Brief"
+            priority = "SAR microwave penetration verified surface roughness beneath cloud cover."
+            directives = [
+                "Confirm high-backscatter corner reflectors against baseline strategic installations.",
+                "Maintain dual-polarization (VV/VH) all-weather monitoring."
+            ]
+            domain = "defense"
+
+        # 5. General Monitoring
+        else:
+            hazard = "NORMAL"
+            title = "Nominal Earth-Observation Inspection"
+            priority = "Environmental metrics remain within expected seasonal baseline."
+            directives = [
+                "No emergency mitigation required.",
+                "Telemetry archived for temporal baseline analysis."
+            ]
+            domain = "general"
+
+        return {
+            "domain": domain,
+            "hazard_level": hazard,
+            "title": title,
+            "priority_action": priority,
+            "field_instructions": directives,
+            "timestamp": datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
+        }
+
+    def localize_text(
+        self,
+        headline: str,
+        bullets: List[str],
+        advisory: Dict[str, Any],
+        lang: str
+    ) -> Tuple[str, List[str], Dict[str, Any]]:
+        if not lang or lang == "en":
+            return headline, bullets, advisory
+
+        lang_summaries = {
+            "hi": {
+                "flood": "बाढ़ आकलन: उपग्रह डेटा से जलमग्न क्षेत्र की पुष्टि हुई है।",
+                "urban": "शहरी विकास: बुनियादी ढांचे और निर्माण में वृद्धि दर्ज की गई है।",
+                "veg": "कृषि व वनस्पति: फसल और हरित आवरण में कमी की पहचान की गई है।",
+                "count": "पहचान: प्रमुख संरचनाओं और जलस्रोतों की गणना पूर्ण हुई।",
+                "sar": "रडार संलयन: बादलों के नीचे सतह की सफल मैपिंग की गई।",
+                "nominal": "उपग्रह निगरानी: क्षेत्र में सामान्य पर्यावरण स्थिति है।"
+            },
+            "ta": {
+                "flood": "வெள்ள மதிப்பீடு: செயற்கைக்கோள் தரவு மூலம் வெள்ள பாதிப்பு உறுதி செய்யப்பட்டுள்ளது.",
+                "urban": "நகர்ப்புற வளர்ச்சி: புதிய கட்டுமானங்கள் மற்றும் சாலை விரிவாக்கம் கண்டறியப்பட்டது.",
+                "veg": "விவசாயம் மற்றும் தாவரங்கள்: பசுமை பரப்பில் மாற்றம் பதிவாகியுள்ளது.",
+                "count": "கண்டறிதல்: முக்கிய நீர்நிலைகள் மற்றும் கட்டமைப்புகள் எண்ணப்பட்டன.",
+                "sar": "ரேடார் ஆய்வு: மேக மூட்டத்திற்கு அடியில் துல்லியமான கண்காணிப்பு நிறைவு.",
+                "nominal": "செயற்கைக்கோள் கண்காணிப்பு: சுற்றுச்சூழல் அளவீடுகள் இயல்பானவை."
+            },
+            "te": {
+                "flood": "వరద అంచనా: ఉపగ్రహ డేటా ద్వారా ముంపు ప్రాంతాలు ధృవీకరించబడ్డాయి.",
+                "urban": "పట్టణ విస్తరణ: కొత్త నిర్మాణాలు మరియు రహదారి విస్తరణ నమోదైంది.",
+                "veg": "వ్యవసాయం & పచ్చదనం: పంట విస్తీర్ణంలో మార్పులు గుర్తించబడ్డాయి.",
+                "count": "లెక్కింపు: ముఖ్యమైన నిర్మాణాలు మరియు జలాశయాలు లెక్కించబడ్డాయి.",
+                "sar": "రడార్ విశ్లేషణ: మేఘాల క్రింద ఉపరితల పర్యవేక్షణ విజయవంతమైంది.",
+                "nominal": "ఉపగ్రహ పరిశీలన: పర్యావరణ స్థితి సాధారణంగా ఉంది."
+            },
+            "bn": {
+                "flood": "বন্যা মূল্যায়ন: উপগ্রহ তথ্যের ভিত্তিতে প্লাবিত এলাকা চিহ্নিত করা হয়েছে।",
+                "urban": "নগরায়ন মূল্যায়ন: নতুন অবকাঠামো ও নির্মাণ সম্প্রসারণ রেকর্ড করা হয়েছে।",
+                "veg": "কৃষি ও সবুজায়ন: ফসলি জমি ও বনভূমির পরিবর্তন শনাক্ত হয়েছে।",
+                "count": "গণনা: প্রধান অবকাঠামো ও জলাশয় গণনা সম্পন্ন হয়েছে।",
+                "sar": "রাডার পর্যবেক্ষণ: মেঘের নিচে ভূ-পৃষ্ঠের স্পষ্ট চিত্র পাওয়া গেছে।",
+                "nominal": "উপগ্রহ নজরদারি: পরিবেশগত সূচক স্বাভাবিক রয়েছে।"
+            },
+            "mr": {
+                "flood": "पूर पाहणी: उपग्रह माहितीनुसार बाधित जलमय क्षेत्राची नोंद झाली आहे.",
+                "urban": "शहरी वाढ: नवीन बांधकाम आणि रस्त्यांच्या विस्ताराची नोंद झाली आहे.",
+                "veg": "शेती व वनस्पती: हरित आच्छादनातील बदल स्पष्टपणे दिसतात.",
+                "count": "मोजणी: महत्त्वाच्या संरचना आणि जलसाठ्यांची नोंद पूर्ण झाली.",
+                "sar": "रडार संलयन: ढगांखालील जमिनीचे अचूक निरीक्षण पूर्ण झाले.",
+                "nominal": "उपग्रह निरीक्षण: पर्यावरणीय मापदंड सामान्य आहेत."
+            }
+        }
+
+        if lang in lang_summaries:
+            prefix_map = lang_summaries[lang]
+            h_low = headline.lower()
+            key = "flood" if "flood" in h_low or "inundat" in h_low else (
+                "urban" if "urban" in h_low or "expansion" in h_low else (
+                    "veg" if "vegetation" in h_low or "canopy" in h_low or "reduction" in h_low else (
+                        "sar" if "sar" in h_low or "radar" in h_low else (
+                            "count" if "identified" in h_low else "nominal"
+                        )
+                    )
+                )
+            )
+            vernacular_line = prefix_map.get(key, prefix_map["nominal"])
+            headline = f"[{lang.upper()}] {vernacular_line} — {headline}"
+
+        return headline, bullets, advisory
 
 semantic_engine = GeospatialReasoningEngine()

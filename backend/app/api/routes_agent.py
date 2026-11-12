@@ -8,6 +8,8 @@ from backend.app.agent.controller import controller
 from backend.app.agent.trace import trace_recorder
 from backend.app.reporting.pdf_generator import MissionReportGenerator
 from backend.app.reporting.json_generator import JsonReportGenerator
+from backend.app.reporting.geojson_generator import GeoJsonReportGenerator
+from backend.app.reporting.kml_generator import KmlReportGenerator
 
 router = APIRouter()
 
@@ -169,3 +171,71 @@ async def download_json_report(trace_id: str):
         media_type="application/json",
         filename=f"SatQuery_Audit_Trace_{trace_id}.json"
     )
+
+@router.get("/report/geojson/{trace_id}")
+async def download_geojson_report(trace_id: str):
+    os.makedirs("static/reports", exist_ok=True)
+    geojson_filename = f"report_{trace_id}.geojson"
+    geojson_path = os.path.join("static/reports", geojson_filename)
+    
+    if os.path.exists(geojson_path):
+        return FileResponse(
+            geojson_path,
+            media_type="application/geo+json",
+            filename=f"SatQuery_Vector_{trace_id}.geojson"
+        )
+    
+    resp = last_response_cache.get(trace_id)
+    if not resp:
+        raise HTTPException(status_code=404, detail=f"Analysis trace '{trace_id}' not found. Please run an analysis first.")
+    report_dict = resp.model_dump()
+    
+    GeoJsonReportGenerator.generate_geojson(report_dict, geojson_path)
+    return FileResponse(
+        geojson_path,
+        media_type="application/geo+json",
+        filename=f"SatQuery_Vector_{trace_id}.geojson"
+    )
+
+@router.get("/report/kml/{trace_id}")
+async def download_kml_report(trace_id: str):
+    os.makedirs("static/reports", exist_ok=True)
+    kml_filename = f"report_{trace_id}.kml"
+    kml_path = os.path.join("static/reports", kml_filename)
+    
+    if os.path.exists(kml_path):
+        return FileResponse(
+            kml_path,
+            media_type="application/vnd.google-earth.kml+xml",
+            filename=f"SatQuery_GIS_{trace_id}.kml"
+        )
+    
+    resp = last_response_cache.get(trace_id)
+    if not resp:
+        raise HTTPException(status_code=404, detail=f"Analysis trace '{trace_id}' not found. Please run an analysis first.")
+    report_dict = resp.model_dump()
+    
+    KmlReportGenerator.generate_kml(report_dict, kml_path)
+    return FileResponse(
+        kml_path,
+        media_type="application/vnd.google-earth.kml+xml",
+        filename=f"SatQuery_GIS_{trace_id}.kml"
+    )
+
+@router.get("/history")
+async def get_analysis_history(limit: int = Query(25, ge=1, le=100)):
+    """Fetches persistent analysis history from Supabase."""
+    from backend.app.db.supabase_client import supabase_service
+    records = supabase_service.get_recent_analyses(limit=limit)
+    return {
+        "history": records,
+        "count": len(records),
+        "supabase_connected": supabase_service.is_available()
+    }
+
+@router.get("/supabase/status")
+async def get_supabase_status():
+    """Returns real-time health and connection status for Supabase database and storage."""
+    from backend.app.db.supabase_client import supabase_service
+    return supabase_service.check_health()
+

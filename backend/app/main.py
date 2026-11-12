@@ -15,6 +15,7 @@ from backend.app.api.routes_agent import router as agent_router
 from backend.app.api.routes_raster import router as raster_router
 from backend.app.api.routes_registry import router as registry_router
 from backend.app.api.routes_datasets import router as dataset_router
+from backend.app.api.routes_stac import router as stac_router
 
 app = FastAPI(
     title="SatQuery AI - Core Backend API",
@@ -38,6 +39,7 @@ os.makedirs(os.path.join(STATIC_DIR, "overlays"), exist_ok=True)
 os.makedirs(os.path.join(STATIC_DIR, "reports"), exist_ok=True)
 os.makedirs(os.path.join(STATIC_DIR, "uploads"), exist_ok=True)
 os.makedirs(os.path.join(STATIC_DIR, "datasets"), exist_ok=True)
+os.makedirs(os.path.join(STATIC_DIR, "stac_cache"), exist_ok=True)
 
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
@@ -46,6 +48,7 @@ app.include_router(agent_router, prefix="/api", tags=["Agentic Analysis"])
 app.include_router(raster_router, prefix="/api", tags=["Raster & Geospatial Validation"])
 app.include_router(registry_router, prefix="/api", tags=["Model & Tool Registry"])
 app.include_router(dataset_router, prefix="/api/datasets", tags=["Dataset & Benchmark Explorers"])
+app.include_router(stac_router, prefix="/api/stac", tags=["STAC Satellite Ingestion"])
 
 @app.get("/api/health")
 async def health_check():

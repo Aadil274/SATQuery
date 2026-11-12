@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2">
+  <Document>
+    <name>SatQuery AI Analysis - tr_1bec147d0482</name>
+    <description><![CDATA[
+      <h3>SatQuery AI Earth Observation Report</h3>
+      <p><b>Query:</b> इस क्षेत्र में हमें क्या दिख रहा है</p>
+      <p><b>Finding:</b> [HI] कृषि व वनस्पति: फसल और हरित आवरण में कमी की पहचान की गई है। — Remote sensing scene captures a landscape dominated by cropland/vegetation (61.8%), built-up structures (36.6%), water bodies (1.2%).</p>
+      <p><b>Hazard Level:</b> NORMAL</p>
+    ]]></description>
+
+    <!-- Styles (KML Color format: aabbggrr) -->
+    <Style id="polyWater">
+      <LineStyle><color>ffff0000</color><width>2.5</width></LineStyle>
+      <PolyStyle><color>7fffff00</color></PolyStyle>
+    </Style>
+    <Style id="polyIncrease">
+      <LineStyle><color>ff0000ff</color><width>2.5</width></LineStyle>
+      <PolyStyle><color>7f0000ff</color></PolyStyle>
+    </Style>
+    <Style id="polyDecrease">
+      <LineStyle><color>ff00a5ff</color><width>2.5</width></LineStyle>
+      <PolyStyle><color>7f00a5ff</color></PolyStyle>
+    </Style>
+    <Style id="polyGeneric">
+      <LineStyle><color>ffffff00</color><width>2.0</width></LineStyle>
+      <PolyStyle><color>60ffff00</color></PolyStyle>
+    </Style>
+
+    <Placemark>
+      <name>Central Built-up Zone (22.27 km²)</name>
+      <description><![CDATA[
+        <b>Task:</b> Single-Image VQA<br/>
+        <b>Area:</b> 22.27 km²<br/>
+        <b>Model Confidence:</b> 89%<br/>
+        <b>Alert Status:</b> NORMAL
+      ]]></description>
+      <styleUrl>#polyGeneric</styleUrl>
+      <Polygon>
+        <extrude>1</extrude>
+        <altitudeMode>clampToGround</altitudeMode>
+        <outerBoundaryIs>
+          <LinearRing>
+            <coordinates>72.851247,19.06145,0 72.895989,19.06145,0 72.895989,19.101,0 72.851247,19.101,0 72.851247,19.06145,0</coordinates>
+          </LinearRing>
+        </outerBoundaryIs>
+      </Polygon>
+    </Placemark>
+    <Placemark>
+      <name>Southwest Built-up Zone (1.21 km²)</name>
+      <description><![CDATA[
+        <b>Task:</b> Single-Image VQA<br/>
+        <b>Area:</b> 1.21 km²<br/>
+        <b>Model Confidence:</b> 88%<br/>
+        <b>Alert Status:</b> NORMAL
+      ]]></description>
+      <styleUrl>#polyGeneric</styleUrl>
+      <Polygon>
+        <extrude>1</extrude>
+        <altitudeMode>clampToGround</altitudeMode>
+        <outerBoundaryIs>
+          <LinearRing>
+            <coordinates>72.858532,19.051,0 72.868193,19.051,0 72.868193,19.061205,0 72.858532,19.061205,0 72.858532,19.051,0</coordinates>
+          </LinearRing>
+        </outerBoundaryIs>
+      </Polygon>
+    </Placemark>
+    <Placemark>
+      <name>Northeast Water Body (0.12 km²)</name>
+      <description><![CDATA[
+        <b>Task:</b> Single-Image VQA<br/>
+        <b>Area:</b> 0.12 km²<br/>
+        <b>Model Confidence:</b> 88%<br/>
+        <b>Alert Status:</b> NORMAL
+      ]]></description>
+      <styleUrl>#polyWater</styleUrl>
+      <Polygon>
+        <extrude>1</extrude>
+        <altitudeMode>clampToGround</altitudeMode>
+        <outerBoundaryIs>
+          <LinearRing>
+            <coordinates>72.901158,19.085375,0 72.903634,19.085375,0 72.903634,19.08928,0 72.901158,19.08928,0 72.901158,19.085375,0</coordinates>
+          </LinearRing>
+        </outerBoundaryIs>
+      </Polygon>
+    </Placemark>
+    <Placemark>
+      <name>Northwest Water Body (0.07 km²)</name>
+      <description><![CDATA[
+        <b>Task:</b> Single-Image VQA<br/>
+        <b>Area:</b> 0.07 km²<br/>
+        <b>Model Confidence:</b> 88%<br/>
+        <b>Alert Status:</b> NORMAL
+      ]]></description>
+      <styleUrl>#polyWater</styleUrl>
+      <Polygon>
+        <extrude>1</extrude>
+        <altitudeMode>clampToGround</altitudeMode>
+        <outerBoundaryIs>
+          <LinearRing>
+            <coordinates>72.854813,19.09724,0 72.856416,19.09724,0 72.856416,19.100465,0 72.854813,19.100465,0 72.854813,19.09724,0</coordinates>
+          </LinearRing>
+        </outerBoundaryIs>
+      </Polygon>
+    </Placemark>
+    <Placemark>
+      <name>Central Vegetation Parcel (33.95 km²)</name>
+      <description><![CDATA[
+        <b>Task:</b> Single-Image VQA<br/>
+        <b>Area:</b> 33.95 km²<br/>
+        <b>Model Confidence:</b> 90%<br/>
+        <b>Alert Status:</b> NORMAL
+      ]]></description>
+      <styleUrl>#polyGeneric</styleUrl>
+      <Polygon>
+        <extrude>1</extrude>
+        <altitudeMode>clampToGround</altitudeMode>
+        <outerBoundaryIs>
+          <LinearRing>
+            <coordinates>72.858273,19.051,0 72.904153,19.051,0 72.904153,19.101,0 72.858273,19.101,0 72.858273,19.051,0</coordinates>
+          </LinearRing>
+        </outerBoundaryIs>
+      </Polygon>
+    </Placemark>
+    <Placemark>
+      <name>Northwest Vegetation Parcel (6.03 km²)</name>
+      <description><![CDATA[
+        <b>Task:</b> Single-Image VQA<br/>
+        <b>Area:</b> 6.03 km²<br/>
+        <b>Model Confidence:</b> 89%<br/>
+        <b>Alert Status:</b> NORMAL
+      ]]></description>
+      <styleUrl>#polyGeneric</styleUrl>
+      <Polygon>
+        <extrude>1</extrude>
+        <altitudeMode>clampToGround</altitudeMode>
+        <outerBoundaryIs>
+          <LinearRing>
+            <coordinates>72.851247,19.08557,0 72.871812,19.08557,0 72.871812,19.101,0 72.851247,19.101,0 72.851247,19.08557,0</coordinates>
+          </LinearRing>
+        </outerBoundaryIs>
+      </Polygon>
+    </Placemark>
+  </Document>
+</kml>

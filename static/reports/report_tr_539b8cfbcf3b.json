@@ -1,0 +1,255 @@
+{
+  "$schema": "https://satquery.ai/schema/v1/report.json",
+  "report_id": "SATQUERY-RPT-tr_539b8cfbcf3b",
+  "generated_at": "2026-09-17T15:50:13.747267Z",
+  "report_metadata": {
+    "mission_agency": "Earth Observation Mission Division",
+    "system": "SatQuery AI",
+    "version": "1.0.0-PROD",
+    "timestamp": "17 Sep 2026, 09:20 PM"
+  },
+  "query": "What changed between these two dates and where did the change occur?",
+  "task_classification": "Change Detection (Bi-temporal)",
+  "findings": {
+    "headline": "Built-up area experienced extensive urban expansion of +0.6% (+0.6 km\u00b2), transforming former agricultural and natural land into developed infrastructure across the Northeast sectors.",
+    "key_observations": [
+      "Structural Expansion: Built-up coverage surged from 5.9% at initial baseline to 2.6% in the current observation (+0.6 km\u00b2 net growth).",
+      "Agricultural Conversion: Former cropland and forest canopy (-4.5 km\u00b2 / -4.5%) were converted directly into impervious structures and transport arteries.",
+      "Major Development Corridors: Delineated 6 prominent continuous growth districts across the Northeast sectors.",
+      "Peripheral Buffer: Preserved vegetated open land remains stable in outlying peripheral parcels (83.4% remaining coverage)."
+    ],
+    "confidence_score": 92
+  },
+  "geospatial_metadata": {
+    "before_image": {
+      "date": "Unknown",
+      "sensor": "Sentinel-2 L2A"
+    },
+    "after_image": {
+      "date": "Unknown",
+      "sensor": "Sentinel-2 L2A"
+    },
+    "location": "Unknown (no geospatial metadata)",
+    "resolution": "Unknown",
+    "area": "Unknown"
+  },
+  "execution_summary": {
+    "task": "Change Detection (Bi-temporal)",
+    "input_type": "2 Images (Sentinel-2)",
+    "models_used": [
+      "Change Detection Model (RS-ChangeNet)",
+      "Change VQA Model (SatQuery-CDVQA)"
+    ],
+    "parameters": {
+      "Threshold": "0.35",
+      "Min Change Area": "0.01 km\u00b2"
+    },
+    "confidence": "92%",
+    "confidence_value": 0.92,
+    "time_taken": "0.24 seconds",
+    "status": "Completed",
+    "timestamp": "17 Sep 2026, 09:20 PM"
+  },
+  "workflow_steps": [
+    {
+      "step_num": 1,
+      "title": "1. Query Understanding",
+      "description": "Interpreting user query semantics & intent",
+      "status": "completed",
+      "details": "Classified intent as 'Change Detection (Bi-temporal)' based on query tokens."
+    },
+    {
+      "step_num": 2,
+      "title": "2. Input Validation",
+      "description": "Checking images, modality, metadata & compatibility",
+      "status": "completed",
+      "details": "Checked CRS compatibility, spatial overlap, and resolution matching."
+    },
+    {
+      "step_num": 3,
+      "title": "3. Model Selection",
+      "description": "Selecting suitable models from registry",
+      "status": "completed",
+      "details": "Dynamically bound tools: [change_detection, change_vqa] from central registry."
+    },
+    {
+      "step_num": 4,
+      "title": "4. Change Detection",
+      "description": "Executing change detection workflow (ChangeNet + CDVQA)",
+      "status": "completed",
+      "details": "Inference executed successfully using specialist tools: [change_detection, change_vqa]."
+    },
+    {
+      "step_num": 5,
+      "title": "5. Evidence Integration",
+      "description": "Combining outputs, estimating confidence & generating answer",
+      "status": "completed",
+      "details": "Combining spatial evidence, computing confidence scores, and synthesizing answer."
+    },
+    {
+      "step_num": 6,
+      "title": "6. Response Generation",
+      "description": "Preparing final response with visual evidence",
+      "status": "completed",
+      "details": "Rendered visual overlay map, confidence gauge, and auditable mission report."
+    }
+  ],
+  "spatial_evidence": [
+    {
+      "id": "cha_1",
+      "label": "Northeast Urban Expansion (0.11 km\u00b2)",
+      "normalized_bbox": [
+        0.2578,
+        0.9648,
+        0.3066,
+        1.0
+      ],
+      "area_km2": 0.11,
+      "category": "change",
+      "confidence": 0.89
+    },
+    {
+      "id": "cha_2",
+      "label": "Southeast Urban Expansion (0.09 km\u00b2)",
+      "normalized_bbox": [
+        0.7051,
+        0.8145,
+        0.791,
+        0.9121
+      ],
+      "area_km2": 0.09,
+      "category": "change",
+      "confidence": 0.87
+    },
+    {
+      "id": "cha_3",
+      "label": "Northern Urban Expansion (0.06 km\u00b2)",
+      "normalized_bbox": [
+        0.25,
+        0.4492,
+        0.3184,
+        0.502
+      ],
+      "area_km2": 0.06,
+      "category": "change",
+      "confidence": 0.87
+    },
+    {
+      "id": "cha_1",
+      "label": "Southwest Vegetation Loss (0.35 km\u00b2)",
+      "normalized_bbox": [
+        0.6895,
+        0.1211,
+        0.7461,
+        0.1836
+      ],
+      "area_km2": 0.35,
+      "category": "change",
+      "confidence": 0.91
+    },
+    {
+      "id": "cha_2",
+      "label": "Northwest Vegetation Loss (0.33 km\u00b2)",
+      "normalized_bbox": [
+        0.1895,
+        0.1289,
+        0.248,
+        0.1855
+      ],
+      "area_km2": 0.33,
+      "category": "change",
+      "confidence": 0.91
+    },
+    {
+      "id": "cha_3",
+      "label": "Southwest Vegetation Loss (0.31 km\u00b2)",
+      "normalized_bbox": [
+        0.8164,
+        0.0664,
+        0.8711,
+        0.123
+      ],
+      "area_km2": 0.31,
+      "category": "change",
+      "confidence": 0.91
+    }
+  ],
+  "change_statistics": {
+    "total_area_km2": 100.0,
+    "changed_pct": 15.23,
+    "percent_change": 15.23,
+    "changed_area_km2": 15.23,
+    "change_area_km2": 15.23,
+    "increase_pct": 0.64,
+    "increase_area_km2": 0.64,
+    "decrease_pct": 4.55,
+    "decrease_area_km2": 4.55,
+    "moderate_pct": 10.69
+  },
+  "heatmap": {
+    "type": "change",
+    "title": "Bi-Temporal Change Intensity Heatmap",
+    "intensity_label": "Change Magnitude (T1 -> T2)",
+    "overlay_url": "/static/overlays/heatmap_change_d73e9ccf.png",
+    "palette": "thermal",
+    "points": [
+      {
+        "x": 0.136,
+        "y": 0.756,
+        "intensity": 0.51,
+        "radius": 0.18,
+        "label": "Active Change #4"
+      },
+      {
+        "x": 0.212,
+        "y": 0.168,
+        "intensity": 0.5,
+        "radius": 0.15,
+        "label": "Transition Area #2"
+      },
+      {
+        "x": 0.719,
+        "y": 0.53,
+        "intensity": 0.48,
+        "radius": 0.35,
+        "label": "Modified Region #3"
+      },
+      {
+        "x": 0.03,
+        "y": 0.034,
+        "intensity": 0.2,
+        "radius": 0.06,
+        "label": "Change Hotspot #1"
+      }
+    ],
+    "max_intensity": 1.0,
+    "min_intensity": 0.12
+  },
+  "confidence_breakdown": {
+    "level": "HIGH",
+    "percent": 92,
+    "breakdown": {
+      "Model confidence": "92%",
+      "Spatial grounding": "6 regions detected",
+      "Sensor metadata": "Not available",
+      "Temporal validity": "Not applicable"
+    }
+  },
+  "image_cards": [
+    {
+      "title": "BEFORE IMAGE",
+      "date": "Unknown",
+      "modality": "Sentinel-2 L2A"
+    },
+    {
+      "title": "AFTER IMAGE",
+      "date": "Unknown",
+      "modality": "Sentinel-2 L2A"
+    },
+    {
+      "title": "CHANGE MAP",
+      "date": "Detected Changes",
+      "modality": "Classification Map"
+    }
+  ]
+}

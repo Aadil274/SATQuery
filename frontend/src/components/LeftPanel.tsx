@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import {
   Upload,
   Plus,
@@ -11,10 +11,12 @@ import {
   Sun,
   Radar,
   CheckCircle2,
-  FileImage
+  FileImage,
+  Search,
+  Globe
 } from 'lucide-react';
 import { PRESETS, Preset } from '../lib/demoData';
-import { ImageSlot } from '../lib/api';
+import { ImageSlot, resolveAssetUrl } from '../lib/api';
 
 interface LeftPanelProps {
   slots: ImageSlot[];
@@ -23,6 +25,7 @@ interface LeftPanelProps {
   onRemove: (idx: number) => void;
   onClear: () => void;
   onToggleModality: (idx: number) => void;
+  onOpenStac?: () => void;
 }
 
 const PRESET_ICONS: Record<string, React.ReactNode> = {
@@ -39,9 +42,18 @@ export const LeftPanel: React.FC<LeftPanelProps> = ({
   onAddFile,
   onRemove,
   onClear,
-  onToggleModality
+  onToggleModality,
+  onOpenStac
 }) => {
   const fileRef = useRef<HTMLInputElement | null>(null);
+  const [presetFilter, setPresetFilter] = useState('');
+
+  const filteredPresets = PRESETS.filter(
+    (p) =>
+      p.title.toLowerCase().includes(presetFilter.toLowerCase()) ||
+      p.subtitle.toLowerCase().includes(presetFilter.toLowerCase()) ||
+      p.query.toLowerCase().includes(presetFilter.toLowerCase())
+  );
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -70,6 +82,21 @@ export const LeftPanel: React.FC<LeftPanelProps> = ({
               </button>
             )}
           </div>
+
+          {/* Live STAC Satellite Ingestion Trigger */}
+          <button
+            data-testid="open-stac-modal"
+            onClick={onOpenStac}
+            className="sq-btn w-full flex items-center justify-between py-2 px-3 rounded-lg border border-[#00F0FF]/40 bg-[#00F0FF]/10 hover:bg-[#00F0FF]/20 text-[#00F0FF] text-xs font-mono-x transition-all mb-2.5 sq-glow-cyan"
+          >
+            <div className="flex items-center gap-2">
+              <Globe className="w-4 h-4 text-[#00F0FF] animate-pulse" />
+              <span className="font-bold">FETCH LIVE SATELLITE PASS</span>
+            </div>
+            <span className="text-[10px] bg-[#00F0FF]/20 border border-[#00F0FF]/30 px-1.5 py-0.5 rounded text-cyan-200">
+              STAC S1/S2
+            </span>
+          </button>
 
           {/* Upload Button */}
           <input
@@ -117,7 +144,7 @@ export const LeftPanel: React.FC<LeftPanelProps> = ({
                   {/* Thumbnail */}
                   <div className="relative w-16 h-16 rounded overflow-hidden border border-cyan-500/30 shrink-0 bg-black">
                     <img
-                      src={slot.preview}
+                      src={resolveAssetUrl(slot.preview)}
                       alt={slot.name}
                       className="w-full h-full object-cover"
                     />
@@ -178,49 +205,76 @@ export const LeftPanel: React.FC<LeftPanelProps> = ({
 
         {/* SECTION 2: Preset Scenarios */}
         <div>
-          <div className="telemetry mb-2 text-cyan-400/80">
-            BENCHMARK PRESETS
+          <div className="telemetry mb-2 text-cyan-400/80 flex items-center justify-between">
+            <span>BENCHMARK PRESETS ({filteredPresets.length})</span>
+            {presetFilter && (
+              <button
+                onClick={() => setPresetFilter('')}
+                className="text-[10px] text-cyan-400 hover:text-cyan-200 font-mono-x cursor-pointer"
+              >
+                CLEAR
+              </button>
+            )}
           </div>
-          <div className="space-y-2">
-            {PRESETS.map((preset) => {
-              const isSelected =
-                slots.length === preset.images.length &&
-                slots.every((s, i) => s.name === preset.images[i]?.name);
 
-              return (
-                <button
-                  key={preset.id}
-                  onClick={() => onLoadPreset(preset)}
-                  className={`sq-btn w-full text-left p-2.5 rounded-lg border transition-all ${
-                    isSelected
-                      ? 'border-[#FF7300] bg-[#FF7300]/10 sq-glow-orange'
-                      : 'border-cyan-500/20 bg-[#121824]/80 hover:border-cyan-400/60 hover:bg-[#182232]'
-                  }`}
-                >
-                  <div className="flex items-start gap-2.5">
-                    <div className="p-1.5 rounded bg-cyan-500/10 border border-cyan-500/20 shrink-0 mt-0.5">
-                      {PRESET_ICONS[preset.icon] || <ScanSearch className="w-4 h-4 text-cyan-300" />}
+          {/* Location / Scenario Search Filter */}
+          <div className="relative mb-2.5">
+            <Search className="w-3.5 h-3.5 text-slate-500 absolute left-2.5 top-2.5" />
+            <input
+              type="text"
+              placeholder="Search location or scenario..."
+              value={presetFilter}
+              onChange={(e) => setPresetFilter(e.target.value)}
+              className="w-full bg-[#0B0E14] border border-cyan-500/25 rounded-lg pl-8 pr-2.5 py-1.5 text-xs text-slate-200 placeholder:text-slate-600 focus:outline-none focus:border-cyan-400 font-sans"
+            />
+          </div>
+
+          <div className="space-y-2">
+            {filteredPresets.length === 0 ? (
+              <div className="p-3 text-center text-xs text-slate-500 rounded border border-cyan-500/10 font-mono-x">
+                No matching presets found for "{presetFilter}".
+              </div>
+            ) : (
+              filteredPresets.map((preset) => {
+                const isSelected =
+                  slots.length === preset.images.length &&
+                  slots.every((s, i) => s.name === preset.images[i]?.name);
+
+                return (
+                  <button
+                    key={preset.id}
+                    onClick={() => onLoadPreset(preset)}
+                    className={`sq-btn w-full text-left p-2.5 rounded-lg border transition-all ${
+                      isSelected
+                        ? 'border-[#FF7300] bg-[#FF7300]/10 sq-glow-orange'
+                        : 'border-cyan-500/20 bg-[#121824]/80 hover:border-cyan-400/60 hover:bg-[#182232]'
+                    }`}
+                  >
+                    <div className="flex items-start gap-2.5">
+                      <div className="p-1.5 rounded bg-cyan-500/10 border border-cyan-500/20 shrink-0 mt-0.5">
+                        {PRESET_ICONS[preset.icon] || <ScanSearch className="w-4 h-4 text-cyan-300" />}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-bold text-slate-200 truncate">
+                            {preset.title}
+                          </span>
+                          {isSelected && (
+                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0 ml-1" />
+                          )}
+                        </div>
+                        <div className="text-[11px] text-cyan-400/70 font-mono-x mt-0.5">
+                          {preset.subtitle}
+                        </div>
+                        <div className="text-xs text-slate-400 mt-1 line-clamp-1 italic">
+                          "{preset.query}"
+                        </div>
+                      </div>
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs font-bold text-slate-200 truncate">
-                          {preset.title}
-                        </span>
-                        {isSelected && (
-                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0 ml-1" />
-                        )}
-                      </div>
-                      <div className="text-[11px] text-cyan-400/70 font-mono-x mt-0.5">
-                        {preset.subtitle}
-                      </div>
-                      <div className="text-xs text-slate-400 mt-1 line-clamp-1 italic">
-                        "{preset.query}"
-                      </div>
-                    </div>
-                  </div>
-                </button>
-              );
-            })}
+                  </button>
+                );
+              })
+            )}
           </div>
         </div>
 

@@ -1,5 +1,9 @@
 import unittest
 import os
+
+# Enable fast, deterministic test harness mode
+os.environ["SQAI_TEST_MODE"] = "1"
+
 import numpy as np
 from PIL import Image
 

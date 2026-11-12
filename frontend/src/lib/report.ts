@@ -109,3 +109,31 @@ export function downloadReport(analysis: AnalysisResponseData) {
   a.remove();
   URL.revokeObjectURL(url);
 }
+
+export function downloadGeoJSON(analysis: AnalysisResponseData) {
+  if (!analysis) return;
+  const traceId = analysis.trace_id || analysis.id;
+  const url = analysis.report_geojson_url || (traceId ? `/api/report/geojson/${traceId}` : '');
+  if (url) {
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `SatQuery_Vector_${traceId || 'export'}.geojson`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  }
+}
+
+export function downloadKML(analysis: AnalysisResponseData) {
+  if (!analysis) return;
+  const traceId = analysis.trace_id || analysis.id;
+  const url = analysis.report_kml_url || (traceId ? `/api/report/kml/${traceId}` : '');
+  if (url) {
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `SatQuery_GIS_${traceId || 'export'}.kml`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  }
+}

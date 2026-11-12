@@ -62,6 +62,9 @@ export interface EvidenceRegionData {
   note?: string;
   box: [number, number, number, number]; // [x, y, w, h] normalized 0..1
   confidence: number;
+  area_km2?: number;
+  area_ha?: number;
+  bbox?: number[];
 }
 
 export interface HeatmapPoint {
@@ -81,6 +84,15 @@ export interface HeatmapData {
   points?: HeatmapPoint[];
   max_intensity?: number;
   min_intensity?: number;
+}
+
+export interface ActionableAdvisoryData {
+  domain: string;
+  hazard_level: 'NORMAL' | 'ADVISORY' | 'WARNING' | 'CRITICAL';
+  title: string;
+  priority_action: string;
+  field_instructions: string[];
+  timestamp: string;
 }
 
 export interface AnalysisResponseData {
@@ -111,9 +123,14 @@ export interface AnalysisResponseData {
     primary_changes?: string[];
     land_cover?: string[];
     evidence_regions?: EvidenceRegionData[];
+    user_roi?: [number, number, number, number];
     change_percentage?: number;
     affected_area?: string;
     heatmap?: HeatmapData;
+    hazard_level?: 'NORMAL' | 'ADVISORY' | 'WARNING' | 'CRITICAL';
+    actionable_advisory?: ActionableAdvisoryData;
+    emergency_sms_brief?: string;
+    language?: string;
   };
   heatmap?: HeatmapData;
 
@@ -135,6 +152,12 @@ export interface AnalysisResponseData {
   trace_id?: string;
   report_pdf_url?: string;
   report_json_url?: string;
+  report_geojson_url?: string;
+  report_kml_url?: string;
+  hazard_level?: 'NORMAL' | 'ADVISORY' | 'WARNING' | 'CRITICAL';
+  actionable_advisory?: ActionableAdvisoryData;
+  emergency_sms_brief?: string;
+  language?: string;
   input_information?: {
     location?: string;
     resolution?: string;
@@ -156,6 +179,8 @@ export async function analyze(payload: {
     width?: number;
     height?: number;
   }>;
+  language?: string;
+  roi?: [number, number, number, number] | null;
 }): Promise<AnalysisResponseData> {
   const res = await fetch(`${API_BASE}/analyze`, {
     method: 'POST',
@@ -184,5 +209,103 @@ export async function getRegistry(): Promise<{
 export async function getBenchmarks(): Promise<any> {
   const res = await fetch(`${API_BASE}/datasets/benchmarks/all`);
   if (!res.ok) return null;
+  return res.json();
+}
+
+export async function getHistory(): Promise<{ history: any[]; count: number; supabase_connected: boolean }> {
+  try {
+    const res = await fetch(`${API_BASE}/history`);
+    if (!res.ok) return { history: [], count: 0, supabase_connected: false };
+    return res.json();
+  } catch {
+    return { history: [], count: 0, supabase_connected: false };
+  }
+}
+
+export async function getSupabaseStatus(): Promise<any> {
+  try {
+    const res = await fetch(`${API_BASE}/supabase/status`);
+    if (!res.ok) return null;
+    return res.json();
+  } catch {
+    return null;
+  }
+}
+
+export interface StacPassItem {
+  id: string;
+  title: string;
+  platform: string;
+  sensor: string;
+  modality: 'optical' | 'sar';
+  datetime: string;
+  date_formatted: string;
+  cloud_cover_pct: number;
+  bbox: number[];
+  preview_url: string;
+  thumbnail_url: string;
+  source: string;
+  resolution: string;
+}
+
+export interface StacPresetLocation {
+  id: string;
+  name: string;
+  bbox: number[];
+  center: [number, number];
+  description: string;
+  flag?: string;
+}
+
+export interface StacSearchResult {
+  location: StacPresetLocation;
+  modality: 'optical' | 'sar';
+  collection: string;
+  date_range: [string, string];
+  count: number;
+  passes: StacPassItem[];
+}
+
+export async function getStacPresets(): Promise<StacPresetLocation[]> {
+  try {
+    const res = await fetch(`${API_BASE}/stac/presets`);
+    if (!res.ok) return [];
+    return res.json();
+  } catch {
+    return [];
+  }
+}
+
+export async function searchStac(payload: {
+  location?: string;
+  bbox?: number[];
+  modality?: 'optical' | 'sar';
+  max_cloud_cover?: number;
+  start_date?: string;
+  end_date?: string;
+  limit?: number;
+}): Promise<StacSearchResult> {
+  const res = await fetch(`${API_BASE}/stac/search`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  });
+  if (!res.ok) {
+    const err = await res.text();
+    throw new Error(`STAC search failed: ${err}`);
+  }
+  return res.json();
+}
+
+export async function ingestStac(passItem: StacPassItem): Promise<ImageSlot> {
+  const res = await fetch(`${API_BASE}/stac/ingest`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(passItem)
+  });
+  if (!res.ok) {
+    const err = await res.text();
+    throw new Error(`STAC ingestion failed: ${err}`);
+  }
   return res.json();
 }

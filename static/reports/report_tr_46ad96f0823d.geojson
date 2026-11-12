@@ -1,0 +1,267 @@
+{
+  "type": "FeatureCollection",
+  "name": "SatQuery_AI_Analysis_tr_46ad96f0823d",
+  "crs": {
+    "type": "name",
+    "properties": {
+      "name": "urn:ogc:def:crs:OGC:1.3:CRS84"
+    }
+  },
+  "metadata": {
+    "system": "SatQuery AI (Autonomous Earth Observation Console)",
+    "trace_id": "tr_46ad96f0823d",
+    "generated_at": "2026-09-13T13:47:34.048789Z",
+    "query": "Detect urban changes and generate vector boundaries",
+    "task": "Change Detection (Bi-temporal)",
+    "headline": "Built-up area experienced extensive urban expansion of +0.6% (+0.6 km\u00b2), transforming former agricultural and natural land into developed infrastructure across the Northeast sectors.",
+    "hazard_level": "ADVISORY"
+  },
+  "features": [
+    {
+      "type": "Feature",
+      "id": "cha_1",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              72.90229,
+              19.08567
+            ],
+            [
+              72.904153,
+              19.08567
+            ],
+            [
+              72.904153,
+              19.08811
+            ],
+            [
+              72.90229,
+              19.08811
+            ],
+            [
+              72.90229,
+              19.08567
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "cha_1",
+        "label": "Northeast Urban Expansion (0.11 km\u00b2)",
+        "category": "change",
+        "area_km2": 0.11,
+        "confidence": 0.89,
+        "color": "#FF1744",
+        "hazard_level": "ADVISORY",
+        "task": "Change Detection (Bi-temporal)"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "cha_2",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              72.894339,
+              19.06145
+            ],
+            [
+              72.899502,
+              19.06145
+            ],
+            [
+              72.899502,
+              19.065745
+            ],
+            [
+              72.894339,
+              19.065745
+            ],
+            [
+              72.894339,
+              19.06145
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "cha_2",
+        "label": "Southeast Urban Expansion (0.09 km\u00b2)",
+        "category": "change",
+        "area_km2": 0.09,
+        "confidence": 0.87,
+        "color": "#FF1744",
+        "hazard_level": "ADVISORY",
+        "task": "Change Detection (Bi-temporal)"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "cha_3",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              72.875012,
+              19.08508
+            ],
+            [
+              72.877806,
+              19.08508
+            ],
+            [
+              72.877806,
+              19.0885
+            ],
+            [
+              72.875012,
+              19.0885
+            ],
+            [
+              72.875012,
+              19.08508
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "cha_3",
+        "label": "Northern Urban Expansion (0.06 km\u00b2)",
+        "category": "change",
+        "area_km2": 0.06,
+        "confidence": 0.87,
+        "color": "#FF1744",
+        "hazard_level": "ADVISORY",
+        "task": "Change Detection (Bi-temporal)"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "cha_1",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              72.857654,
+              19.063695
+            ],
+            [
+              72.860961,
+              19.063695
+            ],
+            [
+              72.860961,
+              19.066525
+            ],
+            [
+              72.857654,
+              19.066525
+            ],
+            [
+              72.857654,
+              19.063695
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "cha_1",
+        "label": "Southwest Vegetation Loss (0.35 km\u00b2)",
+        "category": "change",
+        "area_km2": 0.35,
+        "confidence": 0.91,
+        "color": "#10B981",
+        "hazard_level": "ADVISORY",
+        "task": "Change Detection (Bi-temporal)"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "cha_2",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              72.858067,
+              19.0886
+            ],
+            [
+              72.861061,
+              19.0886
+            ],
+            [
+              72.861061,
+              19.091525
+            ],
+            [
+              72.858067,
+              19.091525
+            ],
+            [
+              72.858067,
+              19.0886
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "cha_2",
+        "label": "Northwest Vegetation Loss (0.33 km\u00b2)",
+        "category": "change",
+        "area_km2": 0.33,
+        "confidence": 0.91,
+        "color": "#10B981",
+        "hazard_level": "ADVISORY",
+        "task": "Change Detection (Bi-temporal)"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "cha_3",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              72.85476,
+              19.057445
+            ],
+            [
+              72.857755,
+              19.057445
+            ],
+            [
+              72.857755,
+              19.06018
+            ],
+            [
+              72.85476,
+              19.06018
+            ],
+            [
+              72.85476,
+              19.057445
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "cha_3",
+        "label": "Southwest Vegetation Loss (0.31 km\u00b2)",
+        "category": "change",
+        "area_km2": 0.31,
+        "confidence": 0.91,
+        "color": "#10B981",
+        "hazard_level": "ADVISORY",
+        "task": "Change Detection (Bi-temporal)"
+      }
+    }
+  ]
+}

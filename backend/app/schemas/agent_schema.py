@@ -67,6 +67,8 @@ class AnalysisRequest(BaseModel):
     min_area_km2: Optional[float] = 0.01
     task_override: Optional[TaskType] = None
     images: Optional[List[Dict[str, Any]]] = None
+    language: Optional[str] = "en"  # "en" | "hi" | "ta" | "te" | "bn" | "mr"
+    roi: Optional[List[float]] = None  # [x, y, w, h] normalized to [0, 1]
 
 class AnalysisResponse(BaseModel):
     query: str
@@ -85,6 +87,12 @@ class AnalysisResponse(BaseModel):
     trace_id: str
     report_pdf_url: str
     report_json_url: str
+    report_geojson_url: Optional[str] = None
+    report_kml_url: Optional[str] = None
+    hazard_level: Optional[str] = "NORMAL"  # "NORMAL" | "ADVISORY" | "WARNING" | "CRITICAL"
+    actionable_advisory: Optional[Dict[str, Any]] = None
+    emergency_sms_brief: Optional[str] = None
+    language: Optional[str] = "en"
     # Reference format compatibility fields
     id: Optional[str] = None
     session_id: Optional[str] = None
@@ -97,5 +105,7 @@ class AnalysisResponse(BaseModel):
     trace: Optional[List[Dict[str, Any]]] = None
     elapsed_sec: Optional[float] = None
     heatmap: Optional[Dict[str, Any]] = None
+    ai_engine: Optional[str] = "gemini-3.8-flash"
+
 
 

@@ -1,14 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { Satellite, History, Radio, Activity, ALargeSmall, Home } from 'lucide-react';
+import { Satellite, History, Radio, Activity, ALargeSmall, Home, Sparkles, Database, Globe } from 'lucide-react';
 
 interface HeaderProps {
   status: string;
   historyCount?: number;
   onOpenHistory: () => void;
   onOpenHome?: () => void;
+  onOpenStac?: () => void;
 }
 
-export const Header: React.FC<HeaderProps> = ({ status, historyCount = 0, onOpenHistory, onOpenHome }) => {
+export const Header: React.FC<HeaderProps> = ({ status, historyCount = 0, onOpenHistory, onOpenHome, onOpenStac }) => {
   const [utc, setUtc] = useState('');
   const [fontSize, setFontSize] = useState<'100' | '125' | '150' | '175'>(() => {
     const saved = localStorage.getItem('sq_font_size');
@@ -95,6 +96,15 @@ export const Header: React.FC<HeaderProps> = ({ status, historyCount = 0, onOpen
 
       {/* Right: Status Pill & History Drawer Trigger */}
       <div className="flex items-center gap-3">
+        {/* Gemini + Supabase Cloud Indicator */}
+        <div className="hidden lg:flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-emerald-500/30 bg-emerald-500/10 text-emerald-300 text-[11px] font-mono-x">
+          <Sparkles className="w-3 h-3 text-[#00F0FF]" />
+          <span>GEMINI VLM</span>
+          <span className="text-slate-500">|</span>
+          <Database className="w-3 h-3 text-[#FF7300]" />
+          <span>SUPABASE</span>
+        </div>
+
         {/* Status Indicator */}
         <div
           className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-[11px] font-mono-x ${
@@ -122,6 +132,20 @@ export const Header: React.FC<HeaderProps> = ({ status, historyCount = 0, onOpen
           <ALargeSmall className="w-3.5 h-3.5 text-[#00F0FF]" />
           <span>TEXT: {fontSize}%</span>
         </button>
+
+        {/* Live Satellite Ingestion (STAC) Trigger */}
+        {onOpenStac && (
+          <button
+            data-testid="header-stac-btn"
+            aria-label="Live Satellite STAC Ingestion"
+            title="Open Live Copernicus Sentinel STAC Catalog Browser"
+            onClick={onOpenStac}
+            className="sq-btn hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-cyan-400/50 hover:border-cyan-300 bg-cyan-500/10 hover:bg-cyan-500/20 text-[#00F0FF] text-xs font-mono-x transition-all sq-glow cursor-pointer"
+          >
+            <Globe className="w-3.5 h-3.5 animate-pulse text-[#00F0FF]" />
+            <span>LIVE STAC</span>
+          </button>
+        )}
 
         {/* History Button */}
         <button

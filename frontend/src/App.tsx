@@ -6,15 +6,18 @@ import { RightPanel } from './components/RightPanel';
 import { BottomDock } from './components/BottomDock';
 import { HistoryDrawer, HistoryItem } from './components/HistoryDrawer';
 import { CompareModal } from './components/CompareModal';
+import { StacModal } from './components/StacModal';
 import { HomePage } from './components/HomePage';
 import {
   ImageSlot,
   AnalysisResponseData,
+  EvidenceRegionData,
   dimsFromUrl,
   blobToBase64,
   imageDims,
   analyze,
-  getRegistry
+  getRegistry,
+  getHistory
 } from './lib/api';
 import { Preset, generateLocalAnalysis } from './lib/demoData';
 
@@ -64,6 +67,13 @@ export function App() {
   const [compareSel, setCompareSel] = useState<string[]>([]);
   const [compareOpen, setCompareOpen] = useState(false);
 
+  // Live STAC Satellite Ingestion state
+  const [stacOpen, setStacOpen] = useState(false);
+
+  // Interactive ROI & Evidence Region Selection state
+  const [activeRoi, setActiveRoi] = useState<[number, number, number, number] | null>(null);
+  const [selectedRegion, setSelectedRegion] = useState<EvidenceRegionData | null>(null);
+
   // Non-blocking toast notification system
   const [toasts, setToasts] = useState<Toast[]>([]);
 
@@ -75,6 +85,31 @@ export function App() {
     }, 3500);
   };
 
+  const handleIngestStacSlot = (slot: ImageSlot, targetIndex: 0 | 1 = 0) => {
+    setSlots((prev) => {
+      if (targetIndex === 0) {
+        return [slot, ...(prev.slice(1, 2))];
+      } else {
+        return [prev[0] || slot, slot];
+      }
+    });
+    setAnalysis(null);
+    setActiveRoi(null);
+    setSelectedRegion(null);
+    addToast(`Ingested live satellite pass: ${slot.name}`, 'success');
+    openConsole();
+  };
+
+  const handleIngestStacPair = (slot1: ImageSlot, slot2: ImageSlot, defaultQuery?: string) => {
+    setSlots([slot1, slot2]);
+    setAnalysis(null);
+    setActiveRoi(null);
+    setSelectedRegion(null);
+    if (defaultQuery) dispatchQuery(defaultQuery);
+    addToast(`Ingested live bi-temporal pair: ${slot1.name} & ${slot2.name}`, 'success');
+    openConsole();
+  };
+
   const dispatchQuery = (q: string) => {
     window.dispatchEvent(new CustomEvent('sq-set-query', { detail: q }));
   };
@@ -83,6 +118,8 @@ export function App() {
     if (showToast) {
       addToast(`Loading preset: ${p.title}…`, 'info');
       setAnalysis(null);
+      setActiveRoi(null);
+      setSelectedRegion(null);
     }
 
     try {
@@ -114,10 +151,42 @@ export function App() {
     openConsole();
   };
 
-  // On mount: fetch model registry
+  // On mount: fetch model registry and persistent Supabase history
   useEffect(() => {
     getRegistry()
       .then((d) => setModelInfo(d.model_info))
+      .catch(() => {});
+
+    getHistory()
+      .then((data) => {
+        if (data && data.history && data.history.length > 0) {
+          const loadedHistory: HistoryItem[] = data.history.map((rec: any) => ({
+            id: rec.id || rec.trace_id,
+            query: rec.query,
+            analysis: {
+              id: rec.id,
+              query: rec.query,
+              task: rec.task_id || 'vqa',
+              task_type: rec.task_type,
+              headline_answer: rec.headline_answer,
+              bullet_points: rec.bullet_points,
+              confidence_score: rec.confidence_score,
+              evidence_regions: rec.evidence_regions || [],
+              heatmap: rec.heatmap_metadata,
+              actionable_advisory: rec.actionable_advisory,
+              hazard_level: rec.hazard_level,
+              report_pdf_url: rec.report_pdf_url,
+              report_geojson_url: rec.report_geojson_url,
+              report_kml_url: rec.report_kml_url,
+              ai_engine: rec.ai_engine,
+              elapsed_sec: rec.execution_time_seconds
+            },
+            slots: [],
+            ts: new Date(rec.created_at || Date.now()).getTime()
+          }));
+          setHistory(loadedHistory);
+        }
+      })
       .catch(() => {});
   }, []);
 
@@ -171,11 +240,17 @@ export function App() {
   const clearAll = () => {
     setSlots([]);
     setAnalysis(null);
+    setActiveRoi(null);
+    setSelectedRegion(null);
     dispatchQuery('');
     addToast('Cleared all imagery slots', 'info');
   };
 
-  const runAnalyze = async (query: string) => {
+  const runAnalyze = async (
+    query: string,
+    language: string = 'en',
+    roiOverride?: [number, number, number, number] | null
+  ) => {
     if (!slots.length) {
       addToast('Please upload or select an imagery scene first', 'info');
       return;
@@ -183,10 +258,15 @@ export function App() {
     setRunning(true);
     setStatus('running');
     setAnalysis(null);
+    setSelectedRegion(null);
+
+    const roiToSend = roiOverride !== undefined ? roiOverride : activeRoi;
 
     try {
       const payload = {
         query,
+        language: language || 'en',
+        roi: roiToSend,
         images: slots.map((s) => ({
           name: s.name,
           modality: s.modality,
@@ -281,6 +361,14 @@ export function App() {
         <HomePage
           onOpenConsole={openConsole}
           onLaunchPreset={handleLaunchPreset}
+          onOpenStac={() => setStacOpen(true)}
+        />
+        {/* Live STAC Satellite Ingestion Modal */}
+        <StacModal
+          open={stacOpen}
+          onClose={() => setStacOpen(false)}
+          onIngestSlot={handleIngestStacSlot}
+          onIngestPair={handleIngestStacPair}
         />
         {/* Floating Toast Notifications */}
         <div className="fixed bottom-4 right-4 z-50 flex flex-col gap-2 pointer-events-none">
@@ -312,6 +400,7 @@ export function App() {
         historyCount={history.length}
         onOpenHistory={() => setHistoryOpen(true)}
         onOpenHome={openHome}
+        onOpenStac={() => setStacOpen(true)}
       />
 
       {/* 2. Main 3-Column Working Area */}
@@ -324,6 +413,7 @@ export function App() {
           onRemove={removeSlot}
           onClear={clearAll}
           onToggleModality={toggleModality}
+          onOpenStac={() => setStacOpen(true)}
         />
 
         {/* Center: Geospatial Viewport + Bottom Dock */}
@@ -333,6 +423,20 @@ export function App() {
             slots={slots}
             analysis={analysis}
             running={running}
+            roi={activeRoi}
+            onRoiChange={setActiveRoi}
+            selectedRegionId={selectedRegion?.id || null}
+            onSelectRegion={setSelectedRegion}
+            onQueryRoi={(box) => {
+              const q = `Analyze the demarcated Region of Interest [x: ${Math.round(box[0]*100)}%, y: ${Math.round(box[1]*100)}%] and detail all observed ground features or changes.`;
+              dispatchQuery(q);
+              runAnalyze(q, undefined, box);
+            }}
+            onQueryRegion={(region) => {
+              const q = `Provide a detailed spatial assessment of the ${region.label} (${region.type}) region. What are the key impacts and recommendations?`;
+              dispatchQuery(q);
+              runAnalyze(q);
+            }}
           />
           <BottomDock
             analysis={analysis}
@@ -347,6 +451,10 @@ export function App() {
           analysis={analysis}
           running={running}
           onAnalyze={runAnalyze}
+          roi={activeRoi}
+          onClearRoi={() => setActiveRoi(null)}
+          selectedRegionId={selectedRegion?.id || null}
+          onSelectRegion={setSelectedRegion}
         />
       </div>
 
@@ -373,6 +481,14 @@ export function App() {
         open={compareOpen}
         onClose={() => setCompareOpen(false)}
         entries={compareEntries}
+      />
+
+      {/* 5. Live STAC Satellite Ingestion Modal */}
+      <StacModal
+        open={stacOpen}
+        onClose={() => setStacOpen(false)}
+        onIngestSlot={handleIngestStacSlot}
+        onIngestPair={handleIngestStacPair}
       />
 
       {/* 5. Floating Toast Notifications */}

@@ -82,12 +82,12 @@ USER QUERY + SATELLITE IMAGES (GeoTIFF / PNG)
 
 ---
 
-## 4. Why BigEarthNet.txt Domain Adaptation Matters
+## 4. Multimodal Vision-Language Reasoning & Cloud Persistence
 
-SatQuery AI does not wrap a generic LLM around satellite images. Its representations are adapted on **BigEarthNet.txt** (2026):
-- **464,044 co-registered Sentinel-1 SAR + Sentinel-2 multispectral images**
-- **9.6M text annotations** covering land-use/land-cover captions, environmental context, VQA pairs, and referring expressions.
-- **LoRA / PEFT Adapters** preserve foundational multi-modal attention while injecting Earth Observation spatial and spectral domain expertise.
+SatQuery AI combines high-speed, local computer-vision raster algorithms with frontier multimodal AI:
+- **Multimodal AI Reasoning**: Integrated via **Google Gemini** (`gemini-3.8-flash` with automatic fallback to `gemini-3.5-flash-lite`), providing real-time vision-language reasoning over Sentinel-2 optical, Sentinel-1 SAR, and bi-temporal image pairs.
+- **Supabase Cloud Integration**: Backed by Supabase PostgreSQL and Storage for persistent analysis history, vector exports, and mission artifact retention.
+- **Auditable Telemetry**: Real-time monotonic timers record precise millisecond latencies for each stage in the 6-stage DAG pipeline.
 
 ---
 
@@ -121,7 +121,7 @@ http://127.0.0.1:8000/
 
 To run the complete automated test suite:
 ```bash
-# 1. Complete Test Suite (Raster Validation, Co-Registration, Agent Controller, API, & Realism):
+# Complete Test Suite (Raster Validation, Co-Registration, Agent Controller, API, & Realism):
 python -m unittest discover -s backend/tests -p "test_*.py"
 ```
-All 23 tests execute in under 1 second with 100% pass rate.
+All 27 tests execute in under 2 seconds with 100% pass rate.
